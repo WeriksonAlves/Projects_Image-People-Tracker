@@ -1,2 +1,3 @@
 # DIS_RU
-Fazer um reconhecimento de gesto em ambiente externo para ver se a câmera do drone sobre muito com a influência da luminosidade e iluminação. Usar uma eps cam montada no bebop que sempre irá apontar para o usuário.
+
+**Perform gesture recognition in an outdoor environment to see if the drone's camera is affected by brightness and lighting. Use an eps cam mounted on the bebop that will always point at the user.**
