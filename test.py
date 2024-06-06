@@ -1,10 +1,9 @@
 import cv2
 
-# URL of the ESP32-CAM video stream
-stream_url = 'http://192.168.0.106/'
-
 # Open a connection to the video stream
-cap = cv2.VideoCapture(stream_url)
+cap = cv2.VideoCapture('http://192.168.0.100:81/stream')
+
+# ret, _ = cap.read()
 
 if not cap.isOpened():
     print("Error: Could not open video stream.")

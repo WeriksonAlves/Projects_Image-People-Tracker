@@ -39,7 +39,6 @@ files_name= ['Datasets\DataBase_(5-10)_G.json',
             ]
 name_val=f"val99"
 
-config = InitializeConfig()
 dataset_mode = ModeFactory.create_mode('dataset', database=database, file_name_build=file_name_build)
 validate_mode = ModeFactory.create_mode('validate', files_name=files_name, database=database, name_val=name_val)
 real_time_mode = ModeFactory.create_mode('real_time', files_name=files_name, database=database)
@@ -47,7 +46,7 @@ real_time_mode = ModeFactory.create_mode('real_time', files_name=files_name, dat
 mode = real_time_mode
 
 grs = GestureRecognitionSystem(
-        config=InitializeConfig(),
+        config=InitializeConfig('http://192.168.0.100:81/stream'),
         operation=mode,
         file_handler=FileHandler(),
         current_folder=os.path.dirname(__file__),
@@ -84,3 +83,5 @@ grs = GestureRecognitionSystem(
 
 grs.run()
 
+grs.frame_captured
+grs.frame_servo

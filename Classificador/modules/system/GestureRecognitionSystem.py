@@ -210,7 +210,10 @@ class GestureRecognitionSystem:
             
             # Cut out the bounding box for another image.
             projected_window = self.tracking_processor.track_operator(results_people, results_identifies, self.frame_captured)
-            
+
+            # Person-centered image for servo control
+            self.frame_servo = projected_window
+
             # Finds the operator's hand(s) and body
             self.hands_results, self.pose_results = self.feature.find_features(projected_window)
             
