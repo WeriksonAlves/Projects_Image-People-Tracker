@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from typing import Union
 
 class InitializeConfig:
     _instance = None
@@ -9,8 +10,11 @@ class InitializeConfig:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self, id: int = 0, fps: int = 5, dist: float = 0.025, length: int = 15) -> None:
-        self.cap = cv2.VideoCapture(id)
+    def __init__(self, source: Union[int, str], fps: int = 5, dist: float = 0.025, length: int = 15) -> None:
+        self.cap = cv2.VideoCapture(source)
+        if not self.cap.isOpened():
+            print("Error: Could not open camera.")
+            exit()
         self.fps = fps
         self.dist = dist
         self.length = length
