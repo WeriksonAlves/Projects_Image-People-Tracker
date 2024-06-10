@@ -3,29 +3,20 @@ from typing import Union
 import numpy as np
 
 class ServoPositionSystem:
-    def __init__(self, frame_original: np.ndarray, frame_person: np.ndarray, servo_enable: bool = False, servo_number: int = 1):
-        self.frame_original = frame_original
-        self.frame_person = frame_person
-        self.servo_enable = servo_enable
-        self.servo_number = servo_number
+    def __init__(self, number_servo: int = 0):
+        self.number_servo = number_servo
+        if self.number_servo == 0:
+            self.enable = False
+        else:
+            self.enable = True
     
-    # Checks if the image of the person is centered in relation to the original image
-    def is_person_centered(self, frame_original: np.ndarray, frame_person: np.ndarray) -> bool:
-        """
-        Check if the person is centered in relation to the original image.
+    def action_servo(self, center_person: bool, dist_center_person: tuple):
+        if self.enable:
+            if center_person:
+                self.move_servo(0)
+            else:
+                if dist_center_person[0] < 0:
+                    self.move_servo(1)
+                else:
+                    self.move_servo(-1)
 
-        Args:
-            frame_original (np.ndarray): The original frame.
-            frame_person (np.ndarray): The person frame.
-
-        Returns:
-            bool: Whether the person is centered.
-        """
-        height, width, _ = frame_original.shape
-        person_height, person_width, _ = frame_person.shape
-        
-        center_original = (int(width / 2), int(height / 2))
-        center_person = (int(person_width / 2), int(person_height / 2))
-
-        current_position = (center_original[0] - center_person[0], center_original[1] - center_person[1])
-        distance = np.linalg.norm(current_position)

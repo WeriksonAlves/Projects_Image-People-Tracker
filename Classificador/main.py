@@ -83,19 +83,7 @@ grs = GestureRecognitionSystem(
             )
         )
 
-# Executes the system in real time in a separate thread.
-# grs.run()
-classification_system = threading.Thread(target = grs.run())
+grs.number_servo = 1
 
-# Initialize the Servo Position System
-sps = ServoPositionSystem(
-        frame_original=grs.frame_captured,
-        frame_person=grs.frame_servo,
-        servo_enable=grs.servo_enabled,
-        servo_number=1)
+grs.run()
 
-# Executes each system in real time in a separate thread.
-# servo_system = threading.Thread(target = sps.run())
-
-classification_system.start()
-# servo_system.start()

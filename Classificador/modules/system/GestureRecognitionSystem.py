@@ -8,13 +8,15 @@ from ..gesture.DataProcessor import DataProcessor
 from ..gesture.GestureAnalyzer import GestureAnalyzer
 from ..gesture.FeatureExtractor import FeatureExtractor
 from ..pdi.interfaces import InterfaceTrack, InterfaceFeature
+from ..system.ServoPositionSystem import ServoPositionSystem
 
 # This class likely represents a system designed for recognizing gestures.
 class GestureRecognitionSystem:
     def __init__(self, config: InitializeConfig, operation: Union[ModeDataset, ModeValidate, ModeRealTime], 
-                 file_handler: FileHandler, current_folder: str, data_processor: DataProcessor, 
-                 time_functions: TimeFunctions, gesture_analyzer: GestureAnalyzer, tracking_processor: InterfaceTrack, 
-                 feature: InterfaceFeature, classifier: InterfaceClassifier = None):
+                file_handler: FileHandler, current_folder: str, data_processor: DataProcessor, 
+                time_functions: TimeFunctions, gesture_analyzer: GestureAnalyzer, tracking_processor: InterfaceTrack, 
+                feature: InterfaceFeature, classifier: InterfaceClassifier = None):
+        
         self._initialize_camera(config)
         self._initialize_operation(operation)
 
@@ -29,6 +31,8 @@ class GestureRecognitionSystem:
 
         self._initialize_simulation_variables()
         self._initialize_storage_variables()
+
+        self.sps = ServoPositionSystem(self.number_servo)
 
     def _initialize_camera(self, config: InitializeConfig) -> None:
         """
@@ -78,7 +82,8 @@ class GestureRecognitionSystem:
         self.time_action = None
         self.y_val = None
         self.frame_captured = None
-        self.servo_enabled = False
+        self.center_person = False
+        self.number_servo = 0
         self.y_predict = []
         self.time_classifier = []
 
@@ -338,10 +343,5 @@ class GestureRecognitionSystem:
         
         # Resets sample data variables to default values
         self.hand_history, _, self.wrists_history, self.sample = self.data_processor.initialize_data(self.dist, self.length)
-    
-    def _system_servo(self) -> None:
-        # If self.servo.enabled is true, then it is determined which way the servo should turn.
-        if self.servo_enabled:
-            pass
 
-        #Then, depending on the value, it will be determined how many degrees the servo should rotate.
+    
