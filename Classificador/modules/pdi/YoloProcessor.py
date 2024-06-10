@@ -47,16 +47,16 @@ class YoloProcessor(InterfaceTrack):
     
     def track_operator(self, results_people: list, results_identifies: np.ndarray, captured_frame: np.ndarray, length: int = 90) -> np.ndarray:
         """
-        Track operator.
+        Tracks the operator identified in the captured frame.
 
         Args:
-            results_people: Results of people found in the frame.
-            results_identifies (np.ndarray): Image results.
+            results_people (list): List of detected people results.
+            results_identifies (np.ndarray): Array of identification results.
             captured_frame (np.ndarray): The captured frame.
-            length (int): Length of the track.
+            length (int, optional): Length of the track history. Defaults to 90.
 
         Returns:
-            np.ndarray: Tracked operator.
+            np.ndarray: The flipped person ROI and the coordinates of the bounding box (x, y, w, h).
         """
         boxes = results_people[0].boxes.xywh.cpu()
         track_ids = results_people[0].boxes.id.int().cpu().tolist()
@@ -71,29 +71,36 @@ class YoloProcessor(InterfaceTrack):
             break
         return cv2.flip(person_roi, 1), (x, y, w, h)
     
-    def is_person_centered(self, captured_frame: np.ndarray, box: tuple) -> bool:
+    def is_person_centered(self, captured_frame: np.ndarray, box: tuple, number_servo: int = 1) -> bool:
         """
-        Check if the person is centered in relation to the original image.
+        Checks if a person is centered in the captured frame based on the given bounding box coordinates.
 
         Args:
-            captured_frame (np.ndarray): The captured frame.
-            box (tuple): The box of the person.
+            captured_frame (np.ndarray): The captured frame as a NumPy array.
+            box (tuple): The bounding box coordinates of the person in the format (x, y, w, h).
+            number_servo (int, optional): The number of the servo. Defaults to 1.
 
         Returns:
-            bool: Whether the person is centered.
+            bool: True if the person is not centered, False otherwise.
+            tuple: The distance of the person from the center of the frame.
+
         """
         height, width, _ = captured_frame.shape
         x, y, w, h = box
         center_original = (int(width / 2), int(height / 2))
-        center_person = (x + w // 2, y + h // 2)
-        current_position = (center_original[0] - center_person[0], center_original[1] - center_person[1])
-        reference_dist = np.linalg.norm(center_person)
-        distance = np.linalg.norm(current_position)
+        if number_servo == 1:
+            dist_center_person = (x - center_original[0])
+            reference_dist = np.linalg.norm((w//2))
+        else:
+            dist_center_person = (x - center_original[0], y - center_original[1])
+            reference_dist = np.linalg.norm((w//2, h//2))
+        
+        distance = np.linalg.norm(dist_center_person)
         if distance < reference_dist:
             print("Person is centered.")
-            return True
+            return False, dist_center_person
         else:
             print("Person is NOT centered.")
-            return False
+            return True, dist_center_person
         
         

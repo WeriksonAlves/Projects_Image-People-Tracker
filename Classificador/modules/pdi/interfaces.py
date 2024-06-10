@@ -40,6 +40,20 @@ class InterfaceTrack(ABC):
         """
         pass
     
+    @abstractmethod
+    def is_person_centered(self, frame_original, frame_person):
+        """
+        Abstract method to check if the person is centered in relation to the original image.
+        
+        Args:
+            frame_original (np.ndarray): The original frame.
+            frame_person (np.ndarray): The person frame.
+        
+        Returns:
+            bool: Whether the person is centered.
+        """
+        pass
+    
 
 class InterfaceFeature(ABC):
     """

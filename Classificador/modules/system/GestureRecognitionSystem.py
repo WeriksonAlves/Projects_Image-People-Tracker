@@ -3,17 +3,18 @@ from typing import Union
 from .SystemSettings import *
 from ..auxiliary.FileHandler import FileHandler
 from ..auxiliary.TimeFunctions import TimeFunctions
+from ..classifier.interfaces import InterfaceClassifier
 from ..gesture.DataProcessor import DataProcessor
 from ..gesture.GestureAnalyzer import GestureAnalyzer
 from ..gesture.FeatureExtractor import FeatureExtractor
-from ..classifier.interfaces import InterfaceClassifier
+from ..pdi.interfaces import InterfaceTrack, InterfaceFeature
 
 # This class likely represents a system designed for recognizing gestures.
 class GestureRecognitionSystem:
     def __init__(self, config: InitializeConfig, operation: Union[ModeDataset, ModeValidate, ModeRealTime], 
                  file_handler: FileHandler, current_folder: str, data_processor: DataProcessor, 
-                 time_functions: TimeFunctions, gesture_analyzer: GestureAnalyzer, tracking_processor, 
-                 feature, classifier: InterfaceClassifier = None):
+                 time_functions: TimeFunctions, gesture_analyzer: GestureAnalyzer, tracking_processor: InterfaceTrack, 
+                 feature: InterfaceFeature, classifier: InterfaceClassifier = None):
         self._initialize_camera(config)
         self._initialize_operation(operation)
 
@@ -137,6 +138,7 @@ class GestureRecognitionSystem:
                         break
                 
                 self._process_stage()
+                self._system_servo()
 
         self.cap.release()
         cv2.destroyAllWindows()
@@ -216,11 +218,10 @@ class GestureRecognitionSystem:
             
             # Cut out the bounding box for another image.
             projected_window, box = self.tracking_processor.track_operator(results_people, results_identifies, self.frame_captured)
-
+            
             # Person-centered image for servo control
-            center_person = self.tracking_processor.is_person_centered(self.frame_captured, box)
-            self.frame_servo = projected_window
-
+            self.center_person, self.dist_center_person = self.tracking_processor.is_person_centered(self.frame_captured, box, self.number_servo)
+            
             # Finds the operator's hand(s) and body
             self.hands_results, self.pose_results = self.feature.find_features(projected_window)
             
@@ -337,3 +338,10 @@ class GestureRecognitionSystem:
         
         # Resets sample data variables to default values
         self.hand_history, _, self.wrists_history, self.sample = self.data_processor.initialize_data(self.dist, self.length)
+    
+    def _system_servo(self) -> None:
+        # If self.servo.enabled is true, then it is determined which way the servo should turn.
+        if self.servo_enabled:
+            pass
+
+        #Then, depending on the value, it will be determined how many degrees the servo should rotate.
