@@ -69,4 +69,31 @@ class YoloProcessor(InterfaceTrack):
             cv2.polylines(results_identifies, [points], isClosed=False, color=(230, 230, 230), thickness=10)
             person_roi = captured_frame[(y - h // 2):(y + h // 2), (x - w // 2):(x + w // 2)]
             break
-        return cv2.flip(person_roi, 1)
+        return cv2.flip(person_roi, 1), (x, y, w, h)
+    
+    def is_person_centered(self, captured_frame: np.ndarray, box: tuple) -> bool:
+        """
+        Check if the person is centered in relation to the original image.
+
+        Args:
+            captured_frame (np.ndarray): The captured frame.
+            box (tuple): The box of the person.
+
+        Returns:
+            bool: Whether the person is centered.
+        """
+        height, width, _ = captured_frame.shape
+        x, y, w, h = box
+        center_original = (int(width / 2), int(height / 2))
+        center_person = (x + w // 2, y + h // 2)
+        current_position = (center_original[0] - center_person[0], center_original[1] - center_person[1])
+        reference_dist = np.linalg.norm(center_person)
+        distance = np.linalg.norm(current_position)
+        if distance < reference_dist:
+            print("Person is centered.")
+            return True
+        else:
+            print("Person is NOT centered.")
+            return False
+        
+        

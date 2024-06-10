@@ -6,13 +6,14 @@ from ..auxiliary.TimeFunctions import TimeFunctions
 from ..gesture.DataProcessor import DataProcessor
 from ..gesture.GestureAnalyzer import GestureAnalyzer
 from ..gesture.FeatureExtractor import FeatureExtractor
+from ..classifier.interfaces import InterfaceClassifier
 
 # This class likely represents a system designed for recognizing gestures.
 class GestureRecognitionSystem:
     def __init__(self, config: InitializeConfig, operation: Union[ModeDataset, ModeValidate, ModeRealTime], 
                  file_handler: FileHandler, current_folder: str, data_processor: DataProcessor, 
                  time_functions: TimeFunctions, gesture_analyzer: GestureAnalyzer, tracking_processor, 
-                 feature, classifier=None):
+                 feature, classifier: InterfaceClassifier = None):
         self._initialize_camera(config)
         self._initialize_operation(operation)
 
@@ -76,6 +77,7 @@ class GestureRecognitionSystem:
         self.time_action = None
         self.y_val = None
         self.frame_captured = None
+        self.servo_enabled = False
         self.y_predict = []
         self.time_classifier = []
 
@@ -112,12 +114,15 @@ class GestureRecognitionSystem:
         elif self.mode == 'RT':
             self._load_and_fit_classifier()
             self.loop = True
+            self.servo_enabled = True
         elif self.mode == 'V':
             self._validate_classifier()
             self.loop = False
+            self.servo_enabled = False
         else:
             print(f"Operation mode invalid!")
             self.loop = False
+            self.servo_enabled = False
             
         t_frame = self.time_functions.tic()
         while self.loop:
@@ -168,11 +173,12 @@ class GestureRecognitionSystem:
         - If conditions are met, the function may return `None` or continue execution without returning anything.
         """
         if self.stage in [0, 1] and self.mode in ['D', 'RT']:
-            if not self.read_image():
+            if not self._read_image():
                 return
-            if not self.image_processing():
+            if not self._image_processing():
                 return
-            self.extract_features()
+            # HERE
+            self._extract_features()
         elif self.stage == 2 and self.mode in ['D', 'RT']:
             self.process_reduction()
             if self.mode == 'D':
@@ -180,16 +186,16 @@ class GestureRecognitionSystem:
             elif self.mode == 'RT':
                 self.stage = 4
         elif self.stage == 3 and self.mode == 'D':
-            if self.update_database():
+            if self._update_database():
                 self.loop = False
             self.stage = 0
         elif self.stage == 4 and self.mode == 'RT':
-            self.classify_gestures()
+            self._classify_gestures()
             self.stage = 0
 
-    def read_image(self) -> None:
+    def _read_image(self) -> None:
         """
-        The function `read_image` reads an image from a camera capture device and returns a success flag
+        The function `_read_image` reads an image from a camera capture device and returns a success flag
         along with the captured frame.
         """
         success, self.frame_captured = self.cap.read()
@@ -197,7 +203,7 @@ class GestureRecognitionSystem:
             print(f"Image capture error.")
         return success
 
-    def image_processing(self) -> None:
+    def _image_processing(self) -> None:
         """
         This function processes captured frames to detect and track an operator, extract features, and
         display the results.
@@ -209,9 +215,10 @@ class GestureRecognitionSystem:
             results_identifies = self.tracking_processor.identify_operator(results_people)
             
             # Cut out the bounding box for another image.
-            projected_window = self.tracking_processor.track_operator(results_people, results_identifies, self.frame_captured)
+            projected_window, box = self.tracking_processor.track_operator(results_people, results_identifies, self.frame_captured)
 
             # Person-centered image for servo control
+            center_person = self.tracking_processor.is_person_centered(self.frame_captured, box)
             self.frame_servo = projected_window
 
             # Finds the operator's hand(s) and body
@@ -235,9 +242,9 @@ class GestureRecognitionSystem:
             self.wrists_history = np.concatenate((self.wrists_history, np.array([self.wrists_history[-1]])), axis=0)
             return False
 
-    def extract_features(self) -> None:
+    def _extract_features(self) -> None:
         """
-        The function `extract_features` processes hand and pose data to track specific joints and
+        The function `_extract_features` processes hand and pose data to track specific joints and
         trigger gestures based on proximity criteria.
         """
         if self.stage == 0:
@@ -290,7 +297,7 @@ class GestureRecognitionSystem:
         # Reduces to a 6x6 matrix 
         self.sample['data_reduce_dim'] = np.dot(self.wrists_history.T, self.wrists_history)
 
-    def update_database(self) -> None:
+    def _update_database(self) -> None:
         """
         This function updates a database with sample data and saves it in JSON format.
         
@@ -316,7 +323,7 @@ class GestureRecognitionSystem:
         else: 
             return False
 
-    def classify_gestures(self) -> None:
+    def _classify_gestures(self) -> None:
         """
         This function classifies gestures based on the stage and mode, updating predictions and
         resetting sample data variables accordingly.

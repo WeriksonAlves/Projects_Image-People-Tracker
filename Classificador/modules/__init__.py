@@ -15,6 +15,7 @@ from .pdi.interfaces import InterfaceTrack
 from .pdi.interfaces import InterfaceFeature
 
 from .system.GestureRecognitionSystem import GestureRecognitionSystem
+from .system.ServoPositionSystem import ServoPositionSystem
 from .system.SystemSettings import InitializeConfig
 from .system.SystemSettings import ModeFactory
 from .system.SystemSettings import ModeDataset
