@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 ...............................................................................................
 Description
@@ -21,6 +22,20 @@ import os
 import rospy
 from std_msgs.msg import String
 
+# def talker():
+
+# Initialize the Servo Position System
+num_servos = 0
+
+rospy.init_node('RecognitionSystem', anonymous=True)
+pub_hor_rot = rospy.Publisher('/SPS/hor_rot', String, queue_size=10)
+pub_ver_rot = rospy.Publisher('/SPS/ver_rot', String, queue_size=10)
+
+com_esp_cam = CommunicationEspCam(pub_hor_rot, pub_ver_rot)
+
+SPS = ServoPositionSystem(num_servos, com_esp_cam)
+
+# Initialize the Gesture Recognition System
 database = {'F': [], 'I': [], 'L': [], 'P': [], 'T': []}
 file_name_build = f"Datasets/DataBase_(5-10)_16.json"
 files_name= ['Datasets/DataBase_(5-10)_G.json',
@@ -47,12 +62,8 @@ real_time_mode = ModeFactory.create_mode('real_time', files_name=files_name, dat
 
 mode = real_time_mode
 
-# Initialize the Servo Position System
-SPS = ServoPositionSystem(1)
-
-# Initialize the Gesture Recognition System
 grs = GestureRecognitionSystem(
-        config=InitializeConfig(0),
+        config=InitializeConfig(4),
         operation=mode,
         file_handler=FileHandler(),
         current_folder=os.path.dirname(__file__),
@@ -87,9 +98,6 @@ grs = GestureRecognitionSystem(
             ),
         sps=SPS
         )
-
-rospy.init_node('RecognitionSystem', anonymous=True)
-pub = rospy.Publisher('/RosAria/cmd_vel', String, queue_size=10)
 
 grs.run()
 

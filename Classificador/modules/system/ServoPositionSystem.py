@@ -1,10 +1,13 @@
-import os
 from typing import Tuple, Union
+from ..ros.ServoControl import CommunicationEspCam
+
 import numpy as np
 
 class ServoPositionSystem:
-    def __init__(self, num_servos: int = 0):
+    def __init__(self, num_servos: int = 0, com_esp_cam: CommunicationEspCam = None):
         self.num_servos = num_servos
+        self.com_esp_cam = com_esp_cam
+
         self.enable = self.num_servos != 0
         self.centered = False
         self.distance_to_center = (0, 0)
@@ -23,7 +26,7 @@ class ServoPositionSystem:
         """
         if not self.enable:
             return
-
+        
         frame_height, frame_width, _ = captured_frame.shape
         box_x, box_y, box_w, box_h = bounding_box
         
@@ -35,7 +38,7 @@ class ServoPositionSystem:
         else:
             self.distance_to_center = (box_x - frame_center[0], box_y - frame_center[1])
             reference_distance = np.linalg.norm([box_w // 2, box_h // 2])
-
+        
         distance = np.linalg.norm(self.distance_to_center)
         
         self.centered = distance < reference_distance
@@ -61,36 +64,12 @@ class ServoPositionSystem:
             return
 
         if self.centered:
-            self.move_servo(0)
+            self.com_esp_cam.action('0')
         else:
-            horizontal_direction = 1 if self.distance_to_center[0] < 0 else -1
-            self.move_servo(horizontal_direction)
+            horizontal_direction = '+1' if self.distance_to_center[0] < 0 else '-1'
+            self.com_esp_cam.action(horizontal_direction)
 
             if self.num_servos > 1:
-                vertical_direction = -2 if self.distance_to_center[1] < 0 else 2
-                self.move_servo(vertical_direction)
+                vertical_direction = '-2' if self.distance_to_center[1] < 0 else '+2'
+                self.com_esp_cam.action(vertical_direction)
     
-    def move_servo(self, direction: int) -> None:
-        """
-        Moves the servo in the specified direction.
-
-        Args:
-            direction (int): The direction to move the servo. 
-                0: Person is centered.
-                1: Turn the horizontal servo counterclockwise.
-                -1: Turn the horizontal servo clockwise.
-                2: Turn the vertical servo clockwise.
-                -2: Turn the vertical servo counterclockwise.
-
-        Returns:
-            None
-
-        """
-        direction_messages = {
-            '0': "Person is centered.",
-            '+1': "Turn the horizontal servo counterclockwise.",
-            '-1': "Turn the horizontal servo clockwise.",
-            '+2': "Turn the vertical servo clockwise.",
-            '-2': "Turn the vertical servo counterclockwise.",
-        }
-        print(direction_messages.get(direction, "Invalid direction."))
