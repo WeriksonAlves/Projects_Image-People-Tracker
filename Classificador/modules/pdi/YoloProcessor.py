@@ -47,16 +47,16 @@ class YoloProcessor(InterfaceTrack):
     
     def track_operator(self, results_people: list, results_identifies: np.ndarray, captured_frame: np.ndarray, length: int = 90) -> np.ndarray:
         """
-        Track operator.
+        Tracks the operator identified in the captured frame.
 
         Args:
-            results_people: Results of people found in the frame.
-            results_identifies (np.ndarray): Image results.
+            results_people (list): List of detected people results.
+            results_identifies (np.ndarray): Array of identification results.
             captured_frame (np.ndarray): The captured frame.
-            length (int): Length of the track.
+            length (int, optional): Length of the track history. Defaults to 90.
 
         Returns:
-            np.ndarray: Tracked operator.
+            np.ndarray: The flipped person ROI and the coordinates of the bounding box (x, y, w, h).
         """
         boxes = results_people[0].boxes.xywh.cpu()
         track_ids = results_people[0].boxes.id.int().cpu().tolist()
@@ -69,4 +69,5 @@ class YoloProcessor(InterfaceTrack):
             cv2.polylines(results_identifies, [points], isClosed=False, color=(230, 230, 230), thickness=10)
             person_roi = captured_frame[(y - h // 2):(y + h // 2), (x - w // 2):(x + w // 2)]
             break
-        return cv2.flip(person_roi, 1)
+        return cv2.flip(person_roi, 1), (x, y, w, h)
+    

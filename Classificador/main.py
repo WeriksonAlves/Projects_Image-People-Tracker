@@ -18,6 +18,7 @@ from modules import *
 from sklearn.neighbors import KNeighborsClassifier
 import mediapipe as mp
 import os
+import threading
 
 database = {'F': [], 'I': [], 'L': [], 'P': [], 'T': []}
 file_name_build = f"Datasets/DataBase_(5-10)_16.json"
@@ -45,8 +46,12 @@ real_time_mode = ModeFactory.create_mode('real_time', files_name=files_name, dat
 
 mode = real_time_mode
 
+# Initialize the Servo Position System
+SPS = ServoPositionSystem(1)
+
+# Initialize the Gesture Recognition System
 grs = GestureRecognitionSystem(
-        config=InitializeConfig('http://192.168.0.111:81/stream'),
+        config=InitializeConfig(0),
         operation=mode,
         file_handler=FileHandler(),
         current_folder=os.path.dirname(__file__),
@@ -78,10 +83,9 @@ grs = GestureRecognitionSystem(
                 algorithm='auto', 
                 weights='uniform'
                 )
-            )
+            ),
+        sps=SPS
         )
 
 grs.run()
 
-grs.frame_captured
-grs.frame_servo
