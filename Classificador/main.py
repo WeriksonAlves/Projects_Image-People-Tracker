@@ -18,7 +18,8 @@ from modules import *
 from sklearn.neighbors import KNeighborsClassifier
 import mediapipe as mp
 import os
-import threading
+import rospy
+from std_msgs.msg import String
 
 database = {'F': [], 'I': [], 'L': [], 'P': [], 'T': []}
 file_name_build = f"Datasets/DataBase_(5-10)_16.json"
@@ -86,6 +87,9 @@ grs = GestureRecognitionSystem(
             ),
         sps=SPS
         )
+
+rospy.init_node('RecognitionSystem', anonymous=True)
+pub = rospy.Publisher('/RosAria/cmd_vel', String, queue_size=10)
 
 grs.run()
 

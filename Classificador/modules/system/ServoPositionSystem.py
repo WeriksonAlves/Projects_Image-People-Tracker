@@ -87,10 +87,10 @@ class ServoPositionSystem:
 
         """
         direction_messages = {
-            0: "Person is centered.",
-            1: "Turn the horizontal servo counterclockwise.",
-            -1: "Turn the horizontal servo clockwise.",
-            2: "Turn the vertical servo clockwise.",
-            -2: "Turn the vertical servo counterclockwise.",
+            '0': "Person is centered.",
+            '+1': "Turn the horizontal servo counterclockwise.",
+            '-1': "Turn the horizontal servo clockwise.",
+            '+2': "Turn the vertical servo clockwise.",
+            '-2': "Turn the vertical servo counterclockwise.",
         }
         print(direction_messages.get(direction, "Invalid direction."))
