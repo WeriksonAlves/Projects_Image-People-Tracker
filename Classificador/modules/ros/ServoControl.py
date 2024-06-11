@@ -23,7 +23,7 @@ class CommunicationEspCam:
 
         """
         action_messages = {
-            '0': "Person is centered.",
+            '0': "No servo should rotate.",
             '+1': "Turn the horizontal servo counterclockwise.",
             '-1': "Turn the horizontal servo clockwise.",
             '+2': "Turn the vertical servo clockwise.",
@@ -33,7 +33,7 @@ class CommunicationEspCam:
         print(action_messages.get(action, "Invalid direction."))
         
         # Send the command to the servo using the ROS communication module.
-        if action == 0:
+        if action == '0':
             self.pub_hor_rot.publish(action)
             self.pub_ver_rot.publish(action)
         elif action[1] == '1':

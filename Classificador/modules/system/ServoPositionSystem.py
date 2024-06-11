@@ -5,6 +5,13 @@ import numpy as np
 
 class ServoPositionSystem:
     def __init__(self, num_servos: int = 0, com_esp_cam: CommunicationEspCam = None):
+        """
+        Initializes a ServoPositionSystem object.
+
+        Args:
+            num_servos (int): The number of servos in the system. Defaults to 0.
+            com_esp_cam (CommunicationEspCam): An instance of CommunicationEspCam class for communication with ESP-CAM. Defaults to None.
+        """
         self.num_servos = num_servos
         self.com_esp_cam = com_esp_cam
 
@@ -42,7 +49,6 @@ class ServoPositionSystem:
         distance = np.linalg.norm(self.distance_to_center)
         
         self.centered = distance < reference_distance
-        print("Person is centered." if self.centered else "Person is NOT centered.")
         
         self.control_servo()
     
@@ -66,10 +72,10 @@ class ServoPositionSystem:
         if self.centered:
             self.com_esp_cam.action('0')
         else:
-            horizontal_direction = '+1' if self.distance_to_center[0] < 0 else '-1'
+            horizontal_direction = '-1' if self.distance_to_center[0] < 0 else '+1'
             self.com_esp_cam.action(horizontal_direction)
 
             if self.num_servos > 1:
-                vertical_direction = '-2' if self.distance_to_center[1] < 0 else '+2'
+                vertical_direction = '+2' if self.distance_to_center[1] < 0 else '-2'
                 self.com_esp_cam.action(vertical_direction)
     

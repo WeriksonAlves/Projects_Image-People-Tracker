@@ -25,7 +25,7 @@ from std_msgs.msg import String
 # def talker():
 
 # Initialize the Servo Position System
-num_servos = 0
+num_servos = 1
 
 rospy.init_node('RecognitionSystem', anonymous=True)
 pub_hor_rot = rospy.Publisher('/SPS/hor_rot', String, queue_size=10)
