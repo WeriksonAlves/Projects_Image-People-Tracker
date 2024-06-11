@@ -46,6 +46,9 @@ real_time_mode = ModeFactory.create_mode('real_time', files_name=files_name, dat
 
 mode = real_time_mode
 
+# Initialize the Servo Position System
+SPS = ServoPositionSystem(1)
+
 # Initialize the Gesture Recognition System
 grs = GestureRecognitionSystem(
         config=InitializeConfig(0),
@@ -80,10 +83,9 @@ grs = GestureRecognitionSystem(
                 algorithm='auto', 
                 weights='uniform'
                 )
-            )
+            ),
+        sps=SPS
         )
-
-grs.number_servo = 1
 
 grs.run()
 

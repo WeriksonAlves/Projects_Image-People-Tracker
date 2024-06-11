@@ -71,36 +71,3 @@ class YoloProcessor(InterfaceTrack):
             break
         return cv2.flip(person_roi, 1), (x, y, w, h)
     
-    def is_person_centered(self, captured_frame: np.ndarray, box: tuple, number_servo: int = 1) -> bool:
-        """
-        Checks if a person is centered in the captured frame based on the given bounding box coordinates.
-
-        Args:
-            captured_frame (np.ndarray): The captured frame as a NumPy array.
-            box (tuple): The bounding box coordinates of the person in the format (x, y, w, h).
-            number_servo (int, optional): The number of the servo. Defaults to 1.
-
-        Returns:
-            bool: True if the person is not centered, False otherwise.
-            tuple: The distance of the person from the center of the frame.
-
-        """
-        height, width, _ = captured_frame.shape
-        x, y, w, h = box
-        center_original = (int(width / 2), int(height / 2))
-        if number_servo == 1:
-            dist_center_person = (x - center_original[0])
-            reference_dist = np.linalg.norm((w//2))
-        else:
-            dist_center_person = (x - center_original[0], y - center_original[1])
-            reference_dist = np.linalg.norm((w//2, h//2))
-        
-        distance = np.linalg.norm(dist_center_person)
-        if distance < reference_dist:
-            print("Person is centered.")
-            return False, dist_center_person
-        else:
-            print("Person is NOT centered.")
-            return True, dist_center_person
-        
-        

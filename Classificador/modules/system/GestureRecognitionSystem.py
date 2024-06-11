@@ -15,24 +15,23 @@ class GestureRecognitionSystem:
     def __init__(self, config: InitializeConfig, operation: Union[ModeDataset, ModeValidate, ModeRealTime], 
                 file_handler: FileHandler, current_folder: str, data_processor: DataProcessor, 
                 time_functions: TimeFunctions, gesture_analyzer: GestureAnalyzer, tracking_processor: InterfaceTrack, 
-                feature: InterfaceFeature, classifier: InterfaceClassifier = None):
+                feature: InterfaceFeature, classifier: InterfaceClassifier = None, sps: ServoPositionSystem = None):
         
         self._initialize_camera(config)
         self._initialize_operation(operation)
-
+        
         self.file_handler = file_handler
         self.current_folder = current_folder
         self.data_processor = data_processor
         self.time_functions = time_functions
         self.gesture_analyzer = gesture_analyzer
-        self.classifier = classifier
         self.tracking_processor = tracking_processor
         self.feature = feature
-
+        self.classifier = classifier
+        self.sps = sps
+        
         self._initialize_simulation_variables()
         self._initialize_storage_variables()
-
-        self.sps = ServoPositionSystem(self.number_servo)
 
     def _initialize_camera(self, config: InitializeConfig) -> None:
         """
@@ -83,7 +82,6 @@ class GestureRecognitionSystem:
         self.y_val = None
         self.frame_captured = None
         self.center_person = False
-        self.number_servo = 0
         self.y_predict = []
         self.time_classifier = []
 
@@ -143,7 +141,6 @@ class GestureRecognitionSystem:
                         break
                 
                 self._process_stage()
-                self._system_servo()
 
         self.cap.release()
         cv2.destroyAllWindows()
@@ -222,10 +219,10 @@ class GestureRecognitionSystem:
             results_identifies = self.tracking_processor.identify_operator(results_people)
             
             # Cut out the bounding box for another image.
-            projected_window, box = self.tracking_processor.track_operator(results_people, results_identifies, self.frame_captured)
+            projected_window, bounding_box = self.tracking_processor.track_operator(results_people, results_identifies, self.frame_captured)
             
-            # Person-centered image for servo control
-            self.center_person, self.dist_center_person = self.tracking_processor.is_person_centered(self.frame_captured, box, self.number_servo)
+            # Processes information for servo control
+            self.sps.is_person_centered(self.frame_captured, bounding_box)
             
             # Finds the operator's hand(s) and body
             self.hands_results, self.pose_results = self.feature.find_features(projected_window)
