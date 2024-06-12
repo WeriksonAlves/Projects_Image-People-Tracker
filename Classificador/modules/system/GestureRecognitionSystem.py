@@ -181,7 +181,6 @@ class GestureRecognitionSystem:
                 return
             if not self._image_processing():
                 return
-            # HERE
             self._extract_features()
         elif self.stage == 2 and self.mode in ['D', 'RT']:
             self.process_reduction()

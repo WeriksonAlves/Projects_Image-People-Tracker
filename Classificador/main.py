@@ -22,11 +22,8 @@ import os
 import rospy
 from std_msgs.msg import String
 
-# def talker():
-
 # Initialize the Servo Position System
 num_servos = 1
-
 rospy.init_node('RecognitionSystem', anonymous=True)
 pub_hor_rot = rospy.Publisher('/SPS/hor_rot', String, queue_size=10)
 pub_ver_rot = rospy.Publisher('/SPS/ver_rot', String, queue_size=10)
@@ -34,6 +31,9 @@ pub_ver_rot = rospy.Publisher('/SPS/ver_rot', String, queue_size=10)
 com_esp_cam = CommunicationEspCam(pub_hor_rot, pub_ver_rot)
 
 SPS = ServoPositionSystem(num_servos, com_esp_cam)
+
+
+
 
 # Initialize the Gesture Recognition System
 database = {'F': [], 'I': [], 'L': [], 'P': [], 'T': []}
