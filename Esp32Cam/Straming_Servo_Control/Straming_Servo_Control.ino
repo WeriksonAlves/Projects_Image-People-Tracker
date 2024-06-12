@@ -9,11 +9,13 @@
 
 
 // ===========================
-// Enter your WiFi credentials
+// Information about WiFi
 // ===========================
 #include <WiFi.h>
 #include <esp_wifi.h>
-#include "Credentials.h"
+
+const char* ssid = "NERo-Arena";
+const char* password = "BDPsystem10";
 // ===========================
 
 
@@ -21,10 +23,50 @@
 
 
 // ===========================
-// Select camera model
+// Camera settings
 // ===========================
 #define CAMERA_MODEL_AI_THINKER // Has PSRAM
 #include "camera_pins.h"
+
+// ===========================
+
+
+
+
+
+// ===========================
+// ROS settings
+// ===========================
+#include <ros.h>
+#include <std_msgs/String.h>
+
+IPAddress server(192,168,0,125); // MASTER IP
+const uint16_t serverPort = 11411; // CONEXAO TCP
+
+ros::NodeHandle nh;
+std_msgs::String msg;
+
+void messageCb(const std_msgs::String &data){
+  Serial.println("HEllo WOrld");
+}
+
+ros::Subscriber<std_msgs::String> sub("/SPS/hor_rot", &messageCb );
+ros::Subscriber<std_msgs::String> subs("/SPS/ver_rot", &messageCb );
+// ===========================
+
+
+
+
+
+// ===========================
+// Servo settings
+// ===========================
+
+#include <ESP32Servo.h>
+
+// create four servo objects 
+Servo servo_h;
+Servo servo_v;
 
 // ===========================
 
@@ -116,6 +158,11 @@ void setup() {
   Serial.print("Camera Ready! Use 'http://");
   Serial.print(WiFi.localIP());
   Serial.println("' to connect");
+
+  nh.getHardware()->setConnection(server, serverPort);
+  nh.initNode();
+  nh.subscribe(sub);
+  nh.subscribe(subs);
 }
 // ===========================
 
@@ -129,6 +176,8 @@ void setup() {
 void loop() {
   // Do nothing. Everything is done in another task by the web server
   delay(10000);
+  nh.spinOnce();
+  delay(10);
 }
 // ===========================
 
