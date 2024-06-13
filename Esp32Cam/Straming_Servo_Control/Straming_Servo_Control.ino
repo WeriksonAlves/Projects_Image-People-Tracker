@@ -27,10 +27,36 @@ const char* password = "BDPsystem10";
 // ===========================
 #define CAMERA_MODEL_AI_THINKER // Has PSRAM
 #include "camera_pins.h"
-
 // ===========================
 
 
+
+
+
+/// ===========================
+// Servo settings
+// ===========================
+#include <ESP32Servo.h>
+//
+////#define DUMMY_SERVO1_PIN 14 // We need to create 2 dummy servos.
+////#define DUMMY_SERVO2_PIN 15 // So that ESP32Servo library does not interfere with pwm channel and timer used by esp32 camera.
+////
+////Servo dummyServo1;
+////Servo dummyServo2;
+//
+//#define SERVO_H 12 // We need to create 2 dummy servos.
+//#define SERVO_V 13 // So that ESP32Servo library does not interfere with pwm channel and timer used by esp32 camera.
+//
+//Servo servo_h; // Controls horizontal camera movement
+//Servo servo_v; // Controls vertical camera movement
+
+// ===========================
+
+#define RedLedPin 14   // GPIO13
+#define GreenLedPin 15  // GPIO15
+#define BlueLedPin 02   // GPIO02
+#define FlashLedPin 04  // GPIO04
+#define BoardLedPin 33  // GPIO33
 
 
 
@@ -44,30 +70,35 @@ IPAddress server(192,168,0,125); // MASTER IP
 const uint16_t serverPort = 11411; // CONEXAO TCP
 
 ros::NodeHandle nh;
-std_msgs::String msg;
+//std_msgs::String msg;
 
-void messageCb(const std_msgs::String &data){
-  Serial.println("HEllo WOrld");
+void messageCb(const std_msgs::String& data, Servo& servo) {
+  String action = data.data;
+  if (action == "0") {
+    // No action
+  } else if (action == "+1") {
+    servo.write(servo.read() - 10); // Turn counterclockwise
+  } else if (action == "-1") {
+    servo.write(servo.read() + 10); // Turn clockwise
+  } else if (action == "+2") {
+    servo.write(servo.read() - 10); // Turn clockwise (for vertical)
+  } else if (action == "-2") {
+    servo.write(servo.read() + 10); // Turn counterclockwise (for vertical)
+  } else {
+//    Serial.println("Invalid direction.");
+  }
 }
 
-ros::Subscriber<std_msgs::String> sub("/SPS/hor_rot", &messageCb );
-ros::Subscriber<std_msgs::String> subs("/SPS/ver_rot", &messageCb );
-// ===========================
+void horRotCb(const std_msgs::String& data) {
+//  messageCb(data, servo_h);
+}
 
+void verRotCb(const std_msgs::String& data) {
+//  messageCb(data, servo_v);
+}
 
-
-
-
-// ===========================
-// Servo settings
-// ===========================
-
-#include <ESP32Servo.h>
-
-// create four servo objects 
-Servo servo_h;
-Servo servo_v;
-
+ros::Subscriber<std_msgs::String> sub_hor_rot("/SPS/hor_rot", &horRotCb);
+ros::Subscriber<std_msgs::String> sub_ver_rot("/SPS/ver_rot", &verRotCb);
 // ===========================
 
 
@@ -113,19 +144,30 @@ float fps = 0;
 // ===========================
 void setup() {
   // Initializing Serial Communication
-  Serial.begin(115200);
-  Serial.setDebugOutput(true);
-  Serial.println();
+//  Serial.begin(115200);
+//  Serial.setDebugOutput(true);
+//  Serial.println();
 
+  pinMode(RedLedPin, OUTPUT);
+  pinMode(GreenLedPin, OUTPUT);
+  pinMode(BlueLedPin, OUTPUT);
+  pinMode(FlashLedPin, OUTPUT);
+  pinMode(BoardLedPin, OUTPUT);
+
+  digitalWrite(RedLedPin,LOW);
+  digitalWrite(GreenLedPin,LOW);
+  digitalWrite(BlueLedPin,LOW);
+  delay(1000);
+  
   //Initialize the camera  
-  Serial.print("Initializing the camera module...");
+//  Serial.print("Initializing the camera module...");
   configInitCamera();
-  Serial.println("Ok!");
+//  Serial.println("Ok!");
 
   // Configuring static IP address
   #ifdef StaticIP
     if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
-      Serial.println("STA Failed to configure");
+//      Serial.println("STA Failed to configure");
     }
   #endif
   
@@ -134,13 +176,13 @@ void setup() {
   WiFi.mode(WIFI_STA);
   
   // Changing Wi-fi Channel
-  Serial.print("Default WiFi-Channel: ");
-  Serial.println(WiFi.channel()); 
+//  Serial.print("Default WiFi-Channel: ");
+//  Serial.println(WiFi.channel()); 
   esp_wifi_set_promiscuous(true);
   esp_wifi_set_channel(CHANNEL, WIFI_SECOND_CHAN_NONE);
   esp_wifi_set_promiscuous(false);   
-  Serial.print("Updated WiFi-Channel: ");
-  Serial.println(WiFi.channel());
+//  Serial.print("Updated WiFi-Channel: ");
+//  Serial.println(WiFi.channel());
 
 
   WiFi.begin(ssid, password);
@@ -148,21 +190,38 @@ void setup() {
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print(".");
+//    Serial.print(".");
   }
-  Serial.println("");
-  Serial.println("WiFi connected");
-
+//  Serial.println("");
+//  Serial.println("WiFi connected");
+  
+  digitalWrite(RedLedPin,HIGH);
+  digitalWrite(GreenLedPin,HIGH);
+  digitalWrite(BlueLedPin,LOW);
+  delay(1000);
+  
   startCameraServer();
 
-  Serial.print("Camera Ready! Use 'http://");
-  Serial.print(WiFi.localIP());
-  Serial.println("' to connect");
+//  Serial.print("Camera Ready! Use 'http://");
+//  Serial.print(WiFi.localIP());
+//  Serial.println("' to connect");
 
   nh.getHardware()->setConnection(server, serverPort);
   nh.initNode();
-  nh.subscribe(sub);
-  nh.subscribe(subs);
+  nh.subscribe(sub_hor_rot);
+  nh.subscribe(sub_ver_rot);
+
+  digitalWrite(RedLedPin,LOW);
+  digitalWrite(GreenLedPin,LOW);
+  digitalWrite(BlueLedPin,HIGH);
+  delay(1000);
+  
+//  // Set up servos
+//  setUpPinModes();
+
+  digitalWrite(RedLedPin,LOW);
+  digitalWrite(GreenLedPin,LOW);
+  digitalWrite(BlueLedPin,LOW);
 }
 // ===========================
 
@@ -174,8 +233,7 @@ void setup() {
 // Loop
 // ===========================
 void loop() {
-  // Do nothing. Everything is done in another task by the web server
-  delay(10000);
+
   nh.spinOnce();
   delay(10);
 }
@@ -188,7 +246,7 @@ void loop() {
 // ===========================
 // Calculate FPS function
 // ===========================
-void CalculateFPS() {
+void calculateFPS() {
   frameCount++;
   unsigned long currentMillis = millis();
   if (currentMillis - lastMillis >= 1000) {
@@ -244,22 +302,11 @@ void configInitCamera(){
   // camera init
   esp_err_t err = esp_camera_init(&config);
   if (err != ESP_OK) {
-    Serial.printf("Camera init failed with error 0x%x", err);
+//    Serial.printf("Camera init failed with error 0x%x", err);
     return;
   }
 
   sensor_t *s = esp_camera_sensor_get();
-//  // initial sensors are flipped vertically and colors are a bit saturated
-//  if (s->id.PID == OV3660_PID) {
-//    s->set_vflip(s, 1);        // flip it back
-//    s->set_brightness(s, 1);   // up the brightness just a bit
-//    s->set_saturation(s, -2);  // lower the saturation
-//  }
-//  // drop down frame size for higher initial frame rate
-//  if (config.pixel_format == PIXFORMAT_JPEG) {
-//    s->set_framesize(s, FRAMESIZE_QVGA);
-//  }
-
   s->set_brightness(s, 0);     // -2 to 2
   s->set_contrast(s, 0);       // -2 to 2
   s->set_saturation(s, 0);     // -2 to 2
@@ -275,3 +322,18 @@ void configInitCamera(){
   s->set_vflip(s, 0);          // 0 = disable , 1 = enable
   
 }
+
+
+
+
+//
+//// ===========================
+//// Settings Servos
+//// ===========================
+//void setUpPinModes() {
+////  dummyServo1.attach(DUMMY_SERVO1_PIN);
+////  dummyServo2.attach(DUMMY_SERVO2_PIN);  
+//  servo_h.attach(SERVO_H);
+//  servo_v.attach(SERVO_V);
+//
+//}
