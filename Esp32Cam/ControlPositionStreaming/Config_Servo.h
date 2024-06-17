@@ -8,13 +8,20 @@
 //Servo dummyServo1;
 //Servo dummyServo2;
 
-
-
 Servo servo_h; // Controls horizontal camera movement
 Servo servo_v; // Controls vertical camera movement
 
-void setUpPinModes() {
-  servo_h.attach(SERVO_H);
-  servo_v.attach(SERVO_V);
+int pos_h = 90;    // variable to store the servo position
+int pos_v = 90;    // variable to store the servo position
+
+void InitialServoConfiguration() {
+  servo_h.setPeriodHertz(50);    // standard 50 hz servo
+  servo_h.attach(SERVO_H); //, 1000, 2000);
+
+  servo_v.setPeriodHertz(50);    // standard 50 hz servo
+  servo_v.attach(SERVO_V); //, 1000, 2000);
+
+  servo_h.write(90);
+  servo_v.write(90);
 
 }

@@ -2,18 +2,26 @@
 // ROS settings
 // ===========================
 
+#include <math.h>
+
 const uint16_t serverPort = 11411; // CONEXAO TCP
 
 ros::NodeHandle nh;
-//std_msgs::String msg;
+std_msgs::Int32 msg;
 
-void horRotCb(const std_msgs::String& data) {
-//  messageCb(data, servo_h);
+
+void messageCb(const std_msgs::Int32& data, Servo& servo) {
+  int error_dist = data.data;
+  servo.write(servo.read() + 10*(int)tanh(error_dist));
 }
 
-void verRotCb(const std_msgs::String& data) {
-//  messageCb(data, servo_v);
+void horRotCb(const std_msgs::Int32& data) {
+  messageCb(data, servo_h);
 }
 
-ros::Subscriber<std_msgs::String> sub_hor_rot("/SPS/hor_rot", &horRotCb);
-ros::Subscriber<std_msgs::String> sub_ver_rot("/SPS/ver_rot", &verRotCb);
+void verRotCb(const std_msgs::Int32& data) {
+  messageCb(data, servo_v);
+}
+
+ros::Subscriber<std_msgs::Int32> sub_hor_rot("/SPS/hor_rot", &horRotCb);
+ros::Subscriber<std_msgs::Int32> sub_ver_rot("/SPS/ver_rot", &verRotCb);

@@ -1,5 +1,5 @@
 import rospy
-
+from std_msgs.msg import Int32
 
 class CommunicationEspCam:
     def __init__(self, horizontal_pub: rospy.Publisher, vertical_pub: rospy.Publisher) -> None:
@@ -41,3 +41,18 @@ class CommunicationEspCam:
             self.vertical_pub.publish(action)
         else:
             print("Invalid action.")
+
+    def perform_action2(self, num_servo: int, error_dist: int):
+        
+        if num_servo == 1:
+            l = Int32()
+            l.data = error_dist
+            self.horizontal_pub.publish(l)
+        else:
+            l1 = Int32()
+            l2 = Int32()
+            l1.data = error_dist[0]
+            l2.data = error_dist[1]
+            self.horizontal_pub.publish(l1)
+            self.vertical_pub.publish(l2)
+

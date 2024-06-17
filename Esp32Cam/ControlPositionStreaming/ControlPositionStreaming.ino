@@ -7,7 +7,9 @@
 #include <ArduinoOTA.h>
 #include <ros.h>
 #include <std_msgs/String.h>
+#include <std_msgs/Int32.h>
 #include <ESP32Servo.h>
+#include <LedRGB.h>
 // ===========================
 
 
@@ -18,13 +20,13 @@
 
 #define CAMERA_MODEL_AI_THINKER // Has PSRAM
 
-#define Servo_H 12 
-#define Servo_V 13 
+#define SERVO_H 12 // Servo for horizontal control
+#define SERVO_V 13 // Vertical control servo
 
-#define RedLedPin 14   // GPIO13
-#define GreenLedPin 15 // GPIO15
-#define BlueLedPin 02  // GPIO02
 #define FlashLedPin 04 // GPIO04
+#define RedPin 15   // GPIO12
+#define GreenPin 14 // GPIO13
+#define BluePin 02  // GPIO14
 // ===========================
 
 
@@ -49,8 +51,14 @@ unsigned int frameCount = 0;
 unsigned long lastMillis = 0;
 float fps = 0;
 
+const int time_delay = 500;
+
 void startCameraServer();
 void setupLedFlash(int pin);
+
+void messageCb();
+
+LedRGB LedRGB(RedPin,GreenPin,BluePin, 2,3,4,false); // Creating LedRGB object
 // ===========================
 
 
@@ -63,15 +71,9 @@ void setup() {
 
   // ===========================
   // Progress indicators
-  pinMode(RedLedPin, OUTPUT);
-  pinMode(GreenLedPin, OUTPUT);
-  pinMode(BlueLedPin, OUTPUT);
   pinMode(FlashLedPin, OUTPUT);
-
-  digitalWrite(RedLedPin,   LOW);
-  digitalWrite(GreenLedPin, LOW);
-  digitalWrite(BlueLedPin,  LOW);
   digitalWrite(FlashLedPin, LOW);
+  LedRGB.Off();
   // ===========================
   
   
@@ -82,11 +84,8 @@ void setup() {
   configInitCamera();
   Serial.println("Ok!");
 
-  digitalWrite(RedLedPin,   LOW);
-  digitalWrite(GreenLedPin, LOW);
-  digitalWrite(BlueLedPin,  LOW);
-  digitalWrite(FlashLedPin, HIGH);
-  delay(1000);
+  LedRGB.Red();
+  delay(time_delay);
   // ===========================
 
 
@@ -126,11 +125,8 @@ void setup() {
   Serial.print(WiFi.localIP());
   Serial.println("' to connect");
 
-  digitalWrite(RedLedPin,   LOW);
-  digitalWrite(GreenLedPin, LOW);
-  digitalWrite(BlueLedPin,  HIGH);
-  digitalWrite(FlashLedPin, LOW);
-  delay(1000);
+  LedRGB.Green();
+  delay(time_delay);
   // ===========================
   
   
@@ -139,11 +135,8 @@ void setup() {
   // Initializing OTA
   OTA();
 
-  digitalWrite(RedLedPin,   LOW);
-  digitalWrite(GreenLedPin, HIGH);
-  digitalWrite(BlueLedPin,  LOW);
-  digitalWrite(FlashLedPin, LOW);
-  delay(1000);
+  LedRGB.Blue();
+  delay(time_delay);
   // ===========================
   
   
@@ -151,11 +144,9 @@ void setup() {
   // ===========================
   startCameraServer();
 
-  digitalWrite(RedLedPin,   HIGH);
-  digitalWrite(GreenLedPin, LOW);
-  digitalWrite(BlueLedPin,  LOW);
-  digitalWrite(FlashLedPin, LOW);
-  delay(1000);
+  LedRGB.Red();
+  digitalWrite(FlashLedPin, HIGH);
+  delay(time_delay);
   // ===========================
   
   
@@ -166,28 +157,21 @@ void setup() {
   nh.subscribe(sub_hor_rot);
   nh.subscribe(sub_ver_rot);
 
-  digitalWrite(RedLedPin,   LOW);
-  digitalWrite(GreenLedPin, LOW);
-  digitalWrite(BlueLedPin,  HIGH);
-  digitalWrite(FlashLedPin, HIGH);
-  delay(1000);
+  LedRGB.Green();
+  delay(time_delay);
   // ===========================
 
 
   
   // ===========================
-  //  // Set up servos
-  //  setUpPinModes();
-  digitalWrite(RedLedPin,   LOW);
-  digitalWrite(GreenLedPin, HIGH);
-  digitalWrite(BlueLedPin,  LOW);
-  digitalWrite(FlashLedPin, HIGH);
-  delay(1000);
+  // Set up servos
+  InitialServoConfiguration();
+  
+  LedRGB.Blue();
+  delay(time_delay);
   // ===========================
 
-  digitalWrite(RedLedPin,   LOW);
-  digitalWrite(GreenLedPin, LOW);
-  digitalWrite(BlueLedPin,  LOW);
+  LedRGB.Off();
   digitalWrite(FlashLedPin, LOW);
 
   
@@ -205,28 +189,25 @@ void loop() {
   nh.spinOnce();
   delay(10);
 
-  /*
-  Code...
-  */
 }
 
 
-void messageCb(const std_msgs::String& data, Servo& servo) {
-  String action = data.data;
-  if (action == "0") {
-    // No action
-  } else if (action == "+1") {
-    servo.write(servo.read() - 10); // Turn counterclockwise
-  } else if (action == "-1") {
-    servo.write(servo.read() + 10); // Turn clockwise
-  } else if (action == "+2") {
-    servo.write(servo.read() - 10); // Turn clockwise (for vertical)
-  } else if (action == "-2") {
-    servo.write(servo.read() + 10); // Turn counterclockwise (for vertical)
-  } else {
-    Serial.println("Invalid direction.");
-  }
-}
+//void messageCb(const std_msgs::String& data, Servo& servo) {
+//  String action = data.data;
+//  if (action == "0") {
+//    // No action
+//  } else if (action == "+1") {
+//    servo.write(servo.read() - 10); // Turn counterclockwise
+//  } else if (action == "-1") {
+//    servo.write(servo.read() + 10); // Turn clockwise
+//  } else if (action == "+2") {
+//    servo.write(servo.read() - 10); // Turn clockwise (for vertical)
+//  } else if (action == "-2") {
+//    servo.write(servo.read() + 10); // Turn counterclockwise (for vertical)
+//  } else {
+//    Serial.println("Invalid direction.");
+//  }
+//}
 
 
 

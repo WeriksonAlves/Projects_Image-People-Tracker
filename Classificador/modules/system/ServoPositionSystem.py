@@ -40,17 +40,15 @@ class ServoPositionSystem:
         frame_center = (frame_width // 2, frame_height // 2)
 
         if self.num_servos == 1:
-            self.distance_to_center = (box_x - frame_center[0],)
-            reference_distance = np.linalg.norm([box_w // 2])
+            self.distance_to_center = (box_x - frame_center[0])
+            self.com_esp_cam.perform_action2(self.num_servos, self.distance_to_center)
         else:
             self.distance_to_center = (box_x - frame_center[0], box_y - frame_center[1])
-            reference_distance = np.linalg.norm([box_w // 2, box_h // 2])
+            self.com_esp_cam.perform_action2(self.num_servos, self.distance_to_center)
 
-        distance = np.linalg.norm(self.distance_to_center)
+        self.centered = False #distance < reference_distance
 
-        self.centered = distance < reference_distance
-
-        self.control_servo()
+        #self.control_servo()
 
     def control_servo(self) -> None:
         """
