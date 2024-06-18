@@ -221,7 +221,7 @@ class GestureRecognitionSystem:
             projected_window, bounding_box = self.tracking_processor.track_operator(results_people, results_identifies, self.frame_captured)
             
             # Processes information for servo control
-            self.sps.is_person_centered(self.frame_captured, bounding_box)
+            self.sps.check_person_centered(self.frame_captured, bounding_box)
             
             # Finds the operator's hand(s) and body
             self.hands_results, self.pose_results = self.feature.find_features(projected_window)

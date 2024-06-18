@@ -1,6 +1,6 @@
 from typing import Tuple, Union
-from ..ros.ServoControl import CommunicationEspCam
 import numpy as np
+from ..ros.ServoControl import CommunicationEspCam
 
 
 class ServoPositionSystem:
@@ -14,67 +14,37 @@ class ServoPositionSystem:
         """
         self.num_servos = num_servos
         self.com_esp_cam = com_esp_cam
-
         self.enabled = self.num_servos != 0
-        self.centered = False
-        self.distance_to_center = (0, 0)
 
-    def is_person_centered(self, captured_frame: np.ndarray, bounding_box: Tuple[int, int, int, int]) -> Union[None, Tuple[bool, Tuple[int, int]]]:
+    def check_person_centered(self, captured_frame: np.ndarray, bounding_box: Tuple[int, int, int, int]) -> None:
         """
-        Check if a person is centered within a given frame.
-        
+        Checks if a person is centered in the captured frame and adjusts the servo position accordingly.
+
         Args:
-            captured_frame (np.ndarray): The captured frame as a NumPy array.
-            bounding_box (tuple): The bounding box coordinates of the person in the frame.
-        
-        Returns:
-            bool: True if the person is centered, False otherwise.
-            tuple: The distance of the person from the center of the frame.
-        """
-        if not self.enabled:
-            return
+            captured_frame (np.ndarray): The captured frame as a numpy array.
+            bounding_box (Tuple[int, int, int, int]): The bounding box coordinates of the detected person (x, y, width, height).
 
-        frame_height, frame_width, _ = captured_frame.shape
-        box_x, box_y, box_w, box_h = bounding_box
-
-        frame_center = (frame_width // 2, frame_height // 2)
-
-        if self.num_servos == 1:
-            self.distance_to_center = (box_x - frame_center[0],)
-            reference_distance = np.linalg.norm([box_w // 2])
-        else:
-            self.distance_to_center = (box_x - frame_center[0], box_y - frame_center[1])
-            reference_distance = np.linalg.norm([box_w // 2, box_h // 2])
-
-        distance = np.linalg.norm(self.distance_to_center)
-
-        self.centered = distance < reference_distance
-
-        self.control_servo()
-
-    def control_servo(self) -> None:
-        """
-        Controls the servo based on the current state of the system.
-
-        - If the system is not activated, the method will return immediately.
-        - If the system is centered, the servo remains stationary.
-        - If the system is not centered, the servo is moved horizontally based on the 
-          direction of rotation to correct the centering.
-        - If there are 2 servos, the servo will also be moved vertically based on the 
-          direction of rotation to correct the centering.
-        
         Returns:
             None
         """
+        # If the system is not enabled, return
         if not self.enabled:
             return
+        
+        # Calculate the center of the frame
+        frame_height, frame_width, _ = captured_frame.shape
+        frame_center = (frame_width // 2, frame_height // 2)
+        
+        # Obtain the bounding box coordinates
+        box_x, box_y, box_width, box_height = bounding_box
 
-        if self.centered:
-            self.com_esp_cam.perform_action('0')
-        else:
-            horizontal_direction = '-1' if self.distance_to_center[0] < 0 else '+1'
-            self.com_esp_cam.perform_action(horizontal_direction)
+        # Calculate the distance horizontal to the center and move the servo accordingly
+        distance_to_center_h = box_x - frame_center[0]
+        horizontal_direction = '-1' if distance_to_center_h < 0 else '+1'
+        self.com_esp_cam.perform_action(horizontal_direction, distance_to_center_h, True)
 
-            if self.num_servos > 1:
-                vertical_direction = '+2' if self.distance_to_center[1] < 0 else '-2'
-                self.com_esp_cam.perform_action(vertical_direction)
+        # Calculate the distance vertical to the center and move the servo accordingly
+        if self.num_servos > 1:
+            distance_to_center_v = box_y - frame_center[1]
+            vertical_direction = '+2' if distance_to_center_v < 0 else '-2'
+            self.com_esp_cam.perform_action(vertical_direction, distance_to_center_v)
