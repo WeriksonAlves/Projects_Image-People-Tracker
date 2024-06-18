@@ -179,36 +179,14 @@ void setup() {
 }
 
 void loop() { 
-  /*
-  Code...
-  */
-  
+
   // Calling function to update OTA
   ArduinoOTA.handle();
 
   nh.spinOnce();
   delay(10);
-
+  
 }
-
-
-//void messageCb(const std_msgs::String& data, Servo& servo) {
-//  String action = data.data;
-//  if (action == "0") {
-//    // No action
-//  } else if (action == "+1") {
-//    servo.write(servo.read() - 10); // Turn counterclockwise
-//  } else if (action == "-1") {
-//    servo.write(servo.read() + 10); // Turn clockwise
-//  } else if (action == "+2") {
-//    servo.write(servo.read() - 10); // Turn clockwise (for vertical)
-//  } else if (action == "-2") {
-//    servo.write(servo.read() + 10); // Turn counterclockwise (for vertical)
-//  } else {
-//    Serial.println("Invalid direction.");
-//  }
-//}
-
 
 
 // ===========================

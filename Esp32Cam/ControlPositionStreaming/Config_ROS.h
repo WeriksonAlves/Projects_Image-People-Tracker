@@ -12,7 +12,7 @@ std_msgs::Int32 msg;
 
 void messageCb(const std_msgs::Int32& data, Servo& servo) {
   int error_dist = data.data;
-  servo.write(servo.read() + 10*(int)tanh(error_dist));
+  servo.write(servo.read() + 5*(int)tanh(0.025*error_dist));
 }
 
 void horRotCb(const std_msgs::Int32& data) {

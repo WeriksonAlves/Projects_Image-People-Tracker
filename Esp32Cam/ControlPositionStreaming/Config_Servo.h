@@ -16,12 +16,12 @@ int pos_v = 90;    // variable to store the servo position
 
 void InitialServoConfiguration() {
   servo_h.setPeriodHertz(50);    // standard 50 hz servo
-  servo_h.attach(SERVO_H); //, 1000, 2000);
+  servo_h.attach(SERVO_H, 1000, 2000);
 
   servo_v.setPeriodHertz(50);    // standard 50 hz servo
-  servo_v.attach(SERVO_V); //, 1000, 2000);
+  servo_v.attach(SERVO_V, 1000, 2000);
 
-  servo_h.write(90);
-  servo_v.write(90);
+  servo_h.write(pos_h);
+  servo_v.write(pos_v);
 
 }
