@@ -1,0 +1,22 @@
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+LedRGB	     KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+Red KEYWORD2
+Green KEYWORD2
+Blue KEYWORD2
+Off KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+RedPin     LITERAL1
+GreenPin      LITERAL1
+BluePin     LITERAL1

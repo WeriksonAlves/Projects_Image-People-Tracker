@@ -1,8 +1,10 @@
+#include <Arduino.h>
+
 #include "Config_ROS.h"
 
 ros::NodeHandle nh;
-
 std_msgs::Int32 msg;
+const uint16_t serverPort = 11411;
 
 void messageCb(const std_msgs::Int32& data, Servo& servo) {
   int error_dist = data.data;
@@ -15,6 +17,13 @@ void horRotCb(const std_msgs::Int32& data) {
 
 void verRotCb(const std_msgs::Int32& data) {
   messageCb(data, vertical_servo);
+}
+
+void setupROS() {
+  nh.getHardware()->setConnection(server, serverPort);
+  nh.initNode();
+  nh.subscribe(sub_hor_rot);
+  nh.subscribe(sub_ver_rot);
 }
 
 ros::Subscriber<std_msgs::Int32> sub_hor_rot("/SPS/hor_rot", &horRotCb);

@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #include "Config_Servo.h"
 
 Servo horizontal_servo; // Controls horizontal camera movement

@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #include "Config_OTA.h"
 
 void OTA() {
@@ -8,7 +10,7 @@ void OTA() {
   ArduinoOTA.setHostname("RecognitionSystem");
 
   // No authentication by default
-  ArduinoOTA.setPassword("...");
+  // ArduinoOTA.setPassword("BDPsystem10!");
 
   ArduinoOTA
     .onStart([]() {

@@ -1,8 +1,11 @@
+#include <Arduino.h>
+
 #ifndef CONFIG_CAMERA_H
 #define CONFIG_CAMERA_H
 
 #include "esp_camera.h"
 #include "Config_CameraPins.h"
+
 
 void configInitCamera(){
   camera_config_t config;
@@ -61,5 +64,6 @@ void configInitCamera(){
   s->set_hmirror(s, 0);        // 0 = disable , 1 = enable
   s->set_vflip(s, 1);          // 0 = disable , 1 = enable
 }
+
 
 #endif // CONFIG_CAMERA_H

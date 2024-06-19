@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #ifndef CONFIG_OTA_H
 #define CONFIG_OTA_H
 

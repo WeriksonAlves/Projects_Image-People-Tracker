@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #ifndef CONFIG_CAMERA_PINS_H
 #define CONFIG_CAMERA_PINS_H
 
