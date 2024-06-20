@@ -47,7 +47,7 @@ void setup() {
 
     // Progress indicators
     pinMode(FlashLedPin, OUTPUT);
-    digitalWrite(FlashLedPin, HIGH);
+    digitalWrite(FlashLedPin, LOW);
     Led_RGB.Off();
 
     // Initialize the camera

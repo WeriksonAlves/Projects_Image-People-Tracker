@@ -8,7 +8,7 @@ const uint16_t serverPort = 11411;
 
 void messageCb(const std_msgs::Int32& data, Servo& servo) {
   int error_dist = data.data;
-  servo.write(servo.read() + 5 * static_cast<int>(tanh(0.025 * error_dist)));
+  servo.write(servo.read() + 10 * (int)(tanh(0.5 * error_dist)));
 }
 
 void horRotCb(const std_msgs::Int32& data) {
