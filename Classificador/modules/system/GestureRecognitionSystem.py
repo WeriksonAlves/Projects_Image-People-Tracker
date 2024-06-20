@@ -214,6 +214,8 @@ class GestureRecognitionSystem:
         try:
             # Find a person and build a bounding box around them, tracking them throughout the
             # experiment.
+            cv2.imshow('Captured Frame', cv2.flip(self.frame_captured,1))
+
             results_people = self.tracking_processor.find_people(self.frame_captured)
             results_identifies = self.tracking_processor.identify_operator(results_people)
             
