@@ -1,9 +1,8 @@
-// ===========================
-// Information about OTA
-// ===========================
+#include <Arduino.h>
 
-void OTA(){
+#include "Config_OTA.h"
 
+void OTA() {
   // Port defaults to 3232
   // ArduinoOTA.setPort(3232);
 
@@ -11,12 +10,8 @@ void OTA(){
   ArduinoOTA.setHostname("RecognitionSystem");
 
   // No authentication by default
-//  ArduinoOTA.setPassword("BDPsystem10!");
+  // ArduinoOTA.setPassword("BDPsystem10!");
 
-  // Password can be set with it's md5 value as well
-  // MD5(admin) = 21232f297a57a5a743894a0e4a801fc3
-  // ArduinoOTA.setPasswordHash("21232f297a57a5a743894a0e4a801fc3");
-  
   ArduinoOTA
     .onStart([]() {
       String type;

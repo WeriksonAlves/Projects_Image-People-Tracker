@@ -3,6 +3,7 @@ tttt = cv2.HoughLines
 ttt = cv2.HoughLinesP
 # Open a connection to the video stream
 cap = cv2.VideoCapture('http://192.168.0.111:81/stream')
+#cap.set(cv2.CAP_PROP_BUFFERSIZE, 3)  # Set buffer size if needed
 # cap = cv2.VideoCapture(4) # 2 e 4
 # ret, _ = cap.read()
 
