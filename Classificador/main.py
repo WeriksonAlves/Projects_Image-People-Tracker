@@ -65,7 +65,7 @@ real_time_mode = ModeFactory.create_mode('real_time', files_name=files_name, dat
 mode = real_time_mode
 
 grs = GestureRecognitionSystem(
-        config=InitializeConfig('http://192.168.0.111:81/stream'),
+        config=InitializeConfig('http://192.168.174.199:81/stream'),
         #config=InitializeConfig(4),
         operation=mode,
         file_handler=FileHandler(),

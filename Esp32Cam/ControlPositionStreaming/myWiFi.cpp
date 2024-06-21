@@ -6,10 +6,13 @@
 
 #include "myWiFi.h"
 
-const char* ssid = "NERo-Arena";
-const char* password = "BDPsystem10";
+//const char* ssid = "NERo-Arena";
+//const char* password = "BDPsystem10";
+const char* ssid = "AndroidAP8CB9";
+const char* password = "poyb6895";
 const int CHANNEL = 13;
-IPAddress server(192, 168, 0, 125); // Update with your server IP
+//IPAddress server(192, 168, 0, 125); // Update with your server IP
+IPAddress server(192, 168, 174, 137); // Update with your server IP
 
 #ifdef StaticIP
 IPAddress local_IP(192, 168, 0, 111);

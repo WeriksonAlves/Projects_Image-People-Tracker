@@ -185,9 +185,10 @@ class GestureRecognitionSystem:
         - If conditions are met, the function may return `None` or continue execution without returning anything.
         """
         if self.stage in [0, 1] and self.mode in ['D', 'RT']:
-            if not self._read_image():
+            success, frame = self._read_image()
+            if not success:
                 return
-            if not self._image_processing():
+            if not self._image_processing(frame):
                 return
             self._extract_features()
         elif self.stage == 2 and self.mode in ['D', 'RT']:
@@ -204,7 +205,17 @@ class GestureRecognitionSystem:
             self._classify_gestures()
             self.stage = 0
 
-    def _read_image_thread(self):
+    def _read_image_thread(self) -> None:
+        """
+        Reads frames from the video capture device and stores the captured frame in the instance variable `frame_captured`.
+
+        This method runs in a separate thread and continuously reads frames from the video capture device. If the frame size is not 640x480,
+        it resizes the frame to the desired size. The captured frame is stored in the `frame_captured` instance variable, which can be accessed
+        by other methods.
+
+        Returns:
+            None
+        """
         while True:
             success, frame = self.cap.read()
             if success:
@@ -214,38 +225,46 @@ class GestureRecognitionSystem:
                 with self.frame_lock:
                     self.frame_captured = frame
 
-    def _read_image(self):
-        with self.frame_lock:
-            if self.frame_captured is None:
-                return False
-            frame = self.frame_captured.copy()
-        return True
+    def _read_image(self) -> tuple[bool, np.ndarray]:
+            """
+            Reads and returns the captured frame from the video stream.
 
-    def _image_processing(self):
+            Returns:
+                A tuple containing a boolean value indicating whether the frame was successfully read,
+                and the captured frame as a numpy array.
+            """
+            with self.frame_lock:
+                if self.frame_captured is None:
+                    return False, None
+                frame = self.frame_captured.copy()  # Create a copy of the frame for thread-safe processing
+            return True, frame
+
+    def _image_processing(self, frame: np.ndarray) -> bool:
+        """
+        Process the input frame for gesture recognition.
+
+        Args:
+            frame (np.ndarray): The input frame to be processed.
+
+        Returns:
+            bool: True if the processing is successful, False otherwise.
+        """
         try:
-            if not self._read_image():
-                return False
-            
-            frame = self.frame_captured
-
-            # Find a person and build a bounding box around them, tracking them throughout the experiment.
-            cv2.imshow('Captured Frame', cv2.flip(frame, 1))
-
             results_people = self.tracking_processor.find_people(frame)
             results_identifies = self.tracking_processor.identify_operator(results_people)
-            
+
             # Cut out the bounding box for another image.
             projected_window, bounding_box = self.tracking_processor.track_operator(results_people, results_identifies, frame)
-            
+
             # Processes information for servo control
             self.sps.check_person_centered(frame, bounding_box)
-            
+
             # Finds the operator's hand(s) and body
             self.hands_results, self.pose_results = self.feature.find_features(projected_window)
-            
+
             # Draws the operator's hand(s) and body
             frame_results = self.feature.draw_features(projected_window, self.hands_results, self.pose_results)
-            
+
             # Shows the skeleton formed on the body, and indicates which gesture is being 
             # performed at the moment.
             if self.mode == 'D':
@@ -253,7 +272,7 @@ class GestureRecognitionSystem:
             elif self.mode == 'RT':
                 cv2.putText(frame_results, f"S{self.stage} D{self.dist_virtual_point:.3f}" , (25,25), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 1, cv2.LINE_AA)
             cv2.imshow('RealSense Camera', frame_results)
-            return  True
+            return True
         except Exception as e:
             print(f"E1 - Error during operator detection, tracking or feature extraction: {e}")
             with self.frame_lock:
@@ -284,7 +303,7 @@ class GestureRecognitionSystem:
             # trigger starts and the gesture begins.
             _, self.hand_history, self.dist_virtual_point = self.gesture_analyzer.check_trigger_enabled(self.hand_history, self.sample['par_trigger_length'], self.sample['par_trigger_dist'])
             if self.dist_virtual_point < self.sample['par_trigger_dist']:
-                self.stage = 1
+                self.stage = 0
                 self.dist_virtual_point = 1
                 self.time_gesture = self.time_functions.tic()
                 self.time_action = self.time_functions.tic()
@@ -301,7 +320,7 @@ class GestureRecognitionSystem:
             
             # Evaluates whether the execution time of a gesture has been completed
             if self.time_functions.toc(self.time_action) > 4:
-                self.stage = 0
+                self.stage = 2
                 self.sample['time_gest'] = self.time_functions.toc(self.time_gesture)
                 self.t_classifier = self.time_functions.tic()
 

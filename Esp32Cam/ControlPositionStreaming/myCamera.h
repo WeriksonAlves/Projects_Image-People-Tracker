@@ -35,7 +35,7 @@ void configInitCamera(){
   // Select lower framesize if the camera doesn't support PSRAM
   if(psramFound()){
     config.frame_size = FRAMESIZE_QVGA; // FRAMESIZE_ + QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA
-    config.jpeg_quality = 30; //10-63 lower number means higher quality
+    config.jpeg_quality = 10; //10-63 lower number means higher quality
     config.fb_count = 2;
   } else {
     config.frame_size = FRAMESIZE_QVGA;
@@ -52,7 +52,7 @@ void configInitCamera(){
 
   sensor_t *s = esp_camera_sensor_get();
   s->set_brightness(s, 0);     // -2 to 2
-  s->set_contrast(s, 0);       // -2 to 2
+  s->set_contrast(s, 1);       // -2 to 2
   s->set_saturation(s, 0);     // -2 to 2
   s->set_special_effect(s, 0); // 0 to 6 (0 - No Effect, 1 - Negative, 2 - Grayscale, 3 - Red Tint, 4 - Green Tint, 5 - Blue Tint, 6 - Sepia)
   s->set_awb_gain(s, 1);       // 0 = disable , 1 = enable

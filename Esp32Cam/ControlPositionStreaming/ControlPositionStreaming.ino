@@ -15,7 +15,7 @@
 
 // ===========================
 // Configs Define
-#define StaticIP // Static IP address
+//#define StaticIP // Static IP address
 #define CAMERA_MODEL_AI_THINKER // Has PSRAM
 #define SERVO_H 12 // Servo for horizontal control
 #define SERVO_V 13 // Vertical control servo
