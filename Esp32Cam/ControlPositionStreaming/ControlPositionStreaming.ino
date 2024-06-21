@@ -3,7 +3,7 @@
 
 #include <WiFi.h>
 #include <esp_wifi.h>
-#include <esp_camera.h> //<esp32cam.h>
+#include <esp_camera.h>
 #include <ArduinoOTA.h>
 #include <ros.h>
 #include <std_msgs/String.h>
@@ -14,31 +14,27 @@
 
 
 // ===========================
-//Configs Define
-
-#define StaticIP // Static IP adress
-
+// Configs Define
+//#define StaticIP // Static IP address
 #define CAMERA_MODEL_AI_THINKER // Has PSRAM
-
 #define SERVO_H 12 // Servo for horizontal control
 #define SERVO_V 13 // Vertical control servo
-
-#define FlashLedPin 04 // GPIO04
-#define RedPin 15   // GPIO12
-#define GreenPin 14 // GPIO13
-#define BluePin 02  // GPIO14
+#define FlashLedPin 4 // GPIO04
+#define RedPin 15 // GPIO15
+#define GreenPin 14 // GPIO14
+#define BluePin 2 // GPIO2
 // ===========================
 
 
 // ===========================
 // Including Libraries: Configs
 
-#include "Config_OTA.h"
-#include "Config_WiFi.h"
-#include "Config_CameraPins.h"
-#include "Config_Camera.h"
-#include "Config_Servo.h"
-#include "Config_ROS.h"
+#include "myOTA.h"
+#include "myWiFi.h"
+#include "cameraPins.h"
+#include "myCamera.h"
+#include "myServo.h"
+#include "myROS.h"
 // ===========================
 
 
@@ -46,158 +42,85 @@
 // ===========================
 // Outhers Configs
 
-// Variables for function 'calculefps'
+// Variables for function 'calculateFPS'
 unsigned int frameCount = 0;
 unsigned long lastMillis = 0;
 float fps = 0;
-
 const int time_delay = 500;
 
 void startCameraServer();
 void setupLedFlash(int pin);
 
-void messageCb();
-
-LedRGB LedRGB(RedPin,GreenPin,BluePin, 2,3,4,false); // Creating LedRGB object
+LedRGB Led_RGB(RedPin,GreenPin,BluePin, 2,3,4,false); // Creating LedRGB object
 // ===========================
 
 
 
 void setup() {
-  // ===========================
   // Initializing Serial Communication
-  Serial.begin(115200);
-  // ===========================
+    Serial.begin(115200);
 
-  // ===========================
-  // Progress indicators
-  pinMode(FlashLedPin, OUTPUT);
-  digitalWrite(FlashLedPin, LOW);
-  LedRGB.Off();
-  // ===========================
-  
-  
-  
-  // ===========================
-  //Initialize the camera  
-  Serial.print("Initializing the camera module...");
-  configInitCamera();
-  Serial.println("Ok!");
+    // Progress indicators
+    pinMode(FlashLedPin, OUTPUT);
+    digitalWrite(FlashLedPin, LOW);
+    Led_RGB.Off();
 
-  LedRGB.Red();
-  delay(time_delay);
-  // ===========================
+    // Initialize the camera
+    Serial.print("Initializing the camera module...");
+    configInitCamera();
+    Serial.println("Ok!");
+    Led_RGB.Red();
+    delay(time_delay);
+
+    // Connect to WiFi
+    connectWIFI();
+    Led_RGB.Green();
+    delay(time_delay);
 
 
+    // Initializing OTA
+    OTA();
+    Led_RGB.Blue();
+    delay(time_delay);
 
-  // ===========================
-  // Configuring static IP address
-  #ifdef StaticIP
-    if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
-      Serial.println("STA Failed to configure");
-    }
-  #endif
+    // Start Camera Server
+    startCameraServer();
+    Led_RGB.Red();
+    digitalWrite(FlashLedPin, HIGH);
+    delay(time_delay);
 
-  // Connecting to access point
-  WiFi.persistent(false);
-  WiFi.mode(WIFI_STA);
-  
-  // Changing Wi-fi Channel
-  Serial.print("Default WiFi-Channel: ");
-  Serial.println(WiFi.channel()); 
-  esp_wifi_set_promiscuous(true);
-  esp_wifi_set_channel(CHANNEL, WIFI_SECOND_CHAN_NONE);
-  esp_wifi_set_promiscuous(false);   
-  Serial.print("Updated WiFi-Channel: ");
-  Serial.println(WiFi.channel());
+    // Initialize ROS
+    setupROS();
+    Led_RGB.Green();
+    delay(time_delay);
 
-  WiFi.begin(ssid, password);
-  WiFi.setSleep(false);
+    // Set up servos
+    configure_initial_servo_positions();
+    Led_RGB.Blue();
+    delay(time_delay);
 
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("");
-  Serial.println("WiFi connected");
-
-  Serial.print("Camera Ready! Use 'http://");
-  Serial.print(WiFi.localIP());
-  Serial.println("' to connect");
-
-  LedRGB.Green();
-  delay(time_delay);
-  // ===========================
-  
-  
-  
-  // ===========================
-  // Initializing OTA
-  OTA();
-
-  LedRGB.Blue();
-  delay(time_delay);
-  // ===========================
-  
-  
-  
-  // ===========================
-  startCameraServer();
-
-  LedRGB.Red();
-  digitalWrite(FlashLedPin, HIGH);
-  delay(time_delay);
-  // ===========================
-  
-  
-  
-  // ===========================
-  nh.getHardware()->setConnection(server, serverPort);
-  nh.initNode();
-  nh.subscribe(sub_hor_rot);
-  nh.subscribe(sub_ver_rot);
-
-  LedRGB.Green();
-  delay(time_delay);
-  // ===========================
-
-
-  
-  // ===========================
-  // Set up servos
-  InitialServoConfiguration();
-  
-  LedRGB.Blue();
-  delay(time_delay);
-  // ===========================
-
-  LedRGB.Off();
-  digitalWrite(FlashLedPin, LOW);
-
-  
-  
+    Led_RGB.Off();
+    digitalWrite(FlashLedPin, LOW);
 }
 
 void loop() { 
-
   // Calling function to update OTA
   ArduinoOTA.handle();
 
   nh.spinOnce();
-  delay(10);
   
 }
 
 
 // ===========================
+
 // Calculate FPS function
-// ===========================
 void calculateFPS() {
-  frameCount++;
-  unsigned long currentMillis = millis();
-  if (currentMillis - lastMillis >= 1000) {
-    fps = frameCount;
-    frameCount = 0;
-    lastMillis = currentMillis;
-  }
+    frameCount++;
+    unsigned long currentMillis = millis();
+    if (currentMillis - lastMillis >= 1000) {
+        fps = frameCount;
+        frameCount = 0;
+        lastMillis = currentMillis;
+    }
 }

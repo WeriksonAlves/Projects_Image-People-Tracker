@@ -40,7 +40,7 @@ class ServoPositionSystem:
 
         # Calculate the distance horizontal to the center and move the servo accordingly
         distance_to_center_h = box_x - frame_center[0]
-        horizontal_direction = '-1' if distance_to_center_h < 0 else '+1'
+        horizontal_direction = '+1' if distance_to_center_h < 0 else '-1'
         self.com_esp_cam.perform_action(horizontal_direction, distance_to_center_h, True)
 
         # Calculate the distance vertical to the center and move the servo accordingly
