@@ -1,4 +1,5 @@
 import os
+import threading
 from typing import Union
 from .SystemSettings import *
 from ..auxiliary.FileHandler import FileHandler
@@ -32,6 +33,13 @@ class GestureRecognitionSystem:
         
         self._initialize_simulation_variables()
         self._initialize_storage_variables()
+
+        # For threading
+        self.frame_lock = threading.Lock()
+        self.frame_captured = None
+        self.image_thread = threading.Thread(target=self._read_image_thread)
+        self.image_thread.daemon = True  # Allows the thread to exit when the main program exits
+        self.image_thread.start()
 
     def _initialize_camera(self, config: InitializeConfig) -> None:
         """
@@ -130,7 +138,7 @@ class GestureRecognitionSystem:
             
         t_frame = self.time_functions.tic()
         while self.loop:
-            if self.time_functions.toc(t_frame) > 1 / self.fps:
+            if self.time_functions.toc(t_frame) > (1 / self.fps):
                 t_frame = self.time_functions.tic()
                 
                 if cv2.waitKey(10) & 0xFF == ord("q"):
@@ -196,34 +204,41 @@ class GestureRecognitionSystem:
             self._classify_gestures()
             self.stage = 0
 
-    def _read_image(self) -> None:
-        """
-        The function `_read_image` reads an image from a camera capture device and returns a success flag
-        along with the captured frame.
-        """
-        success, self.frame_captured = self.cap.read()
-        if not success: 
-            print(f"Image capture error.")
-        return success
+    def _read_image_thread(self):
+        while True:
+            success, frame = self.cap.read()
+            if success:
+                # Verify if the size image is 640x480, otherwise, resize it
+                if frame.shape[0] != 640 or frame.shape[1] != 480:
+                    frame = cv2.resize(frame, (640, 480))
+                with self.frame_lock:
+                    self.frame_captured = frame
 
-    def _image_processing(self) -> None:
-        """
-        This function processes captured frames to detect and track an operator, extract features, and
-        display the results.
-        """
+    def _read_image(self):
+        with self.frame_lock:
+            if self.frame_captured is None:
+                return False
+            frame = self.frame_captured.copy()
+        return True
+
+    def _image_processing(self):
         try:
-            # Find a person and build a bounding box around them, tracking them throughout the
-            # experiment.
-            cv2.imshow('Captured Frame', cv2.flip(self.frame_captured,1))
+            if not self._read_image():
+                return False
+            
+            frame = self.frame_captured
 
-            results_people = self.tracking_processor.find_people(self.frame_captured)
+            # Find a person and build a bounding box around them, tracking them throughout the experiment.
+            cv2.imshow('Captured Frame', cv2.flip(frame, 1))
+
+            results_people = self.tracking_processor.find_people(frame)
             results_identifies = self.tracking_processor.identify_operator(results_people)
             
             # Cut out the bounding box for another image.
-            projected_window, bounding_box = self.tracking_processor.track_operator(results_people, results_identifies, self.frame_captured)
+            projected_window, bounding_box = self.tracking_processor.track_operator(results_people, results_identifies, frame)
             
             # Processes information for servo control
-            self.sps.check_person_centered(self.frame_captured, bounding_box)
+            self.sps.check_person_centered(frame, bounding_box)
             
             # Finds the operator's hand(s) and body
             self.hands_results, self.pose_results = self.feature.find_features(projected_window)
@@ -241,7 +256,9 @@ class GestureRecognitionSystem:
             return  True
         except Exception as e:
             print(f"E1 - Error during operator detection, tracking or feature extraction: {e}")
-            cv2.imshow('RealSense Camera', cv2.flip(self.frame_captured,1))
+            with self.frame_lock:
+                frame = self.frame_captured
+            cv2.imshow('RealSense Camera', cv2.flip(frame, 1))
             self.hand_history = np.concatenate((self.hand_history, np.array([self.hand_history[-1]])), axis=0)
             self.wrists_history = np.concatenate((self.wrists_history, np.array([self.wrists_history[-1]])), axis=0)
             return False
@@ -284,7 +301,7 @@ class GestureRecognitionSystem:
             
             # Evaluates whether the execution time of a gesture has been completed
             if self.time_functions.toc(self.time_action) > 4:
-                self.stage = 2
+                self.stage = 0
                 self.sample['time_gest'] = self.time_functions.toc(self.time_gesture)
                 self.t_classifier = self.time_functions.tic()
 

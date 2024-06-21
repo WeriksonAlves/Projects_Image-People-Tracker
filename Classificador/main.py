@@ -25,6 +25,7 @@ from std_msgs.msg import Int32
 # Initialize the Servo Position System
 num_servos = 1 # Number of servos in the system
 dir_rot = 1 #direction of rotation
+
 rospy.init_node('RecognitionSystem', anonymous=True)
 pub_hor_rot = rospy.Publisher('/SPS/hor_rot', Int32, queue_size=10)
 pub_ver_rot = rospy.Publisher('/SPS/ver_rot', Int32, queue_size=10)

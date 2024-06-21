@@ -10,9 +10,7 @@ const uint16_t serverPort = 11411;
 
 void messageCb(const std_msgs::Int32& data, Servo& servo) {
   int varAngle = data.data;
-  if (abs(varAngle) > 3) {
-    servo.write(servo.read() + varAngle);
-  }
+  servo.write(servo.read() + varAngle);
 }
 
 void horRotCb(const std_msgs::Int32& data) {

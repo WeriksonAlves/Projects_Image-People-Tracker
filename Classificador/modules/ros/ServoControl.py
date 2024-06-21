@@ -37,7 +37,7 @@ class CommunicationEspCam:
             '-2': "Turn the vertical servo clockwise.",
         }
 
-        gains = [5, 1/30]
+        gains = [4, 1/30]
         signal = round(self.dir_rot * gains[0] * np.tanh(gains[1] * distance_to_center))
 
         # Print the action message if show_message is True
