@@ -33,13 +33,7 @@ class GestureRecognitionSystem:
         
         self._initialize_simulation_variables()
         self._initialize_storage_variables()
-
-        # For threading
-        self.frame_lock = threading.Lock()
-        self.frame_captured = None
-        self.image_thread = threading.Thread(target=self._read_image_thread)
-        self.image_thread.daemon = True  # Allows the thread to exit when the main program exits
-        self.image_thread.start()
+        self._initialize_threads()
 
     def _initialize_camera(self, config: InitializeConfig) -> None:
         """
@@ -90,6 +84,7 @@ class GestureRecognitionSystem:
         self.y_val = None
         self.frame_captured = None
         self.center_person = False
+        self.loop = False
         self.y_predict = []
         self.time_classifier = []
 
@@ -99,6 +94,15 @@ class GestureRecognitionSystem:
         by `data_processor`.
         """
         self.hand_history, _, self.wrists_history, self.sample = self.data_processor.initialize_data(self.dist, self.length)
+
+    def _initialize_threads(self) -> None:
+        # For threading
+        self.frame_lock = threading.Lock()
+        
+        # Thread for reading images
+        self.image_thread = threading.Thread(target=self._read_image_thread)
+        self.image_thread.daemon = True
+        self.image_thread.start()
 
     def run(self):
         """
@@ -139,19 +143,17 @@ class GestureRecognitionSystem:
         t_frame = self.time_functions.tic()
         while self.loop:
             if self.time_functions.toc(t_frame) > (1 / self.fps):
+                print(f"FPS: {1 / self.time_functions.toc(t_frame):.3f} and Time per frame: {self.time_functions.toc(t_frame):.3f}")
                 t_frame = self.time_functions.tic()
                 
                 if cv2.waitKey(10) & 0xFF == ord("q"):
-                    break
+                    self.stop()
                 
                 if self.mode == "B":
                     if self.num_gest == self.max_num_gest:
-                        break
+                        self.stop()
                 
                 self._process_stage()
-
-        self.cap.release()
-        cv2.destroyAllWindows()
 
     def _initialize_database(self):
         """
@@ -303,7 +305,7 @@ class GestureRecognitionSystem:
             # trigger starts and the gesture begins.
             _, self.hand_history, self.dist_virtual_point = self.gesture_analyzer.check_trigger_enabled(self.hand_history, self.sample['par_trigger_length'], self.sample['par_trigger_dist'])
             if self.dist_virtual_point < self.sample['par_trigger_dist']:
-                self.stage = 0
+                self.stage = 1
                 self.dist_virtual_point = 1
                 self.time_gesture = self.time_functions.tic()
                 self.time_action = self.time_functions.tic()
@@ -337,7 +339,7 @@ class GestureRecognitionSystem:
         # Reduces to a 6x6 matrix 
         self.sample['data_reduce_dim'] = np.dot(self.wrists_history.T, self.wrists_history)
 
-    def _update_database(self) -> None:
+    def _update_database(self) -> bool:
         """
         This function updates a database with sample data and saves it in JSON format.
         
@@ -378,4 +380,11 @@ class GestureRecognitionSystem:
         # Resets sample data variables to default values
         self.hand_history, _, self.wrists_history, self.sample = self.data_processor.initialize_data(self.dist, self.length)
 
-    
+    def stop(self):
+        """
+        Stops the gesture recognition system.
+
+        """
+        self.loop = False
+        self.cap.release()
+        cv2.destroyAllWindows()
