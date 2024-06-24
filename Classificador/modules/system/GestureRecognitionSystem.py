@@ -146,7 +146,7 @@ class GestureRecognitionSystem:
                 print(f"FPS: {1 / self.time_functions.toc(t_frame):.3f} and Time per frame: {self.time_functions.toc(t_frame):.3f}")
                 t_frame = self.time_functions.tic()
                 
-                if cv2.waitKey(10) & 0xFF == ord("q"):
+                if cv2.waitKey(1) & 0xFF == ord("q"):
                     self.stop()
                 
                 if self.mode == "B":
