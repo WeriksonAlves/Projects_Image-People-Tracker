@@ -28,8 +28,8 @@ void setupROS() {
   nh.subscribe(sub_ver_rot);
 }
 
-ros::Subscriber<std_msgs::Int32> sub_hor_rot("/SPS/hor_rot", &horRotCb);
-ros::Subscriber<std_msgs::Int32> sub_ver_rot("/SPS/ver_rot", &verRotCb);
+ros::Subscriber<std_msgs::Int32> sub_hor_rot("/EspSystem/hor_rot", &horRotCb);
+ros::Subscriber<std_msgs::Int32> sub_ver_rot("/EspSystem/ver_rot", &verRotCb);
 
 
 

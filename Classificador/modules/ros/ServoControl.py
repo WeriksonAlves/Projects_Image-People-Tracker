@@ -31,10 +31,10 @@ class CommunicationEspCam:
         """
         # Define action messages
         action_messages = {
-            '+1': "Turn the horizontal servo clockwise.",
-            '-1': "Turn the horizontal servo counterclockwise.",
-            '+2': "Turn the vertical servo counterclockwise.",
-            '-2': "Turn the vertical servo clockwise.",
+            '+1': "Turn the horizontal servo to the left.",
+            '-1': "Turn the horizontal servo to the right.",
+            '+2': "Turn the vertical servo upwards.",
+            '-2': "Turn the vertical servo downwards.",
         }
 
         gains = [5, 1/30]

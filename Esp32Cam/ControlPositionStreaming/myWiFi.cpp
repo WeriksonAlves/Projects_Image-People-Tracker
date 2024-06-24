@@ -11,8 +11,8 @@
 const char* ssid = "AndroidAP8CB9";
 const char* password = "poyb6895";
 const int CHANNEL = 13;
-//IPAddress server(192, 168, 0, 125); // Update with your server IP
-IPAddress server(192, 168, 174, 137); // Update with your server IP
+//IPAddress server(192, 168, 0, 125); // IP NERo
+IPAddress server(192, 168, 209, 137); // IP AndroidAP (Celular - Werikson)
 
 #ifdef StaticIP
 IPAddress local_IP(192, 168, 0, 111);
