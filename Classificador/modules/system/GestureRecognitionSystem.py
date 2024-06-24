@@ -16,7 +16,7 @@ class GestureRecognitionSystem:
     def __init__(self, config: InitializeConfig, operation: Union[ModeDataset, ModeValidate, ModeRealTime], 
                 file_handler: FileHandler, current_folder: str, data_processor: DataProcessor, 
                 time_functions: TimeFunctions, gesture_analyzer: GestureAnalyzer, tracking_processor: InterfaceTrack, 
-                feature: InterfaceFeature, classifier: InterfaceClassifier = None, sps: ServoPositionSystem = None):
+                feature: InterfaceFeature, classifier: InterfaceClassifier = None, sps: ServoPositionSystem = None) -> None:
         
         self._initialize_camera(config)
         self._initialize_operation(operation)
@@ -104,7 +104,7 @@ class GestureRecognitionSystem:
         self.image_thread.daemon = True
         self.image_thread.start()
 
-    def run(self):
+    def run(self) -> None:
         """
         Run the gesture recognition system based on the specified mode.
 
@@ -155,14 +155,14 @@ class GestureRecognitionSystem:
                 
                 self._process_stage()
 
-    def _initialize_database(self):
+    def _initialize_database(self) -> None:
         """
         This method initializes the target names and ground truth labels (y_val) by calling the
         initialize_database method of the file_handler object.
         """
         self.target_names, self.y_val = self.file_handler.initialize_database(self.database)
 
-    def _load_and_fit_classifier(self):
+    def _load_and_fit_classifier(self) -> None:
         """
         This method loads the training data, fits the classifier with the training data, and performs
         model training.
@@ -170,7 +170,7 @@ class GestureRecognitionSystem:
         x_train, y_train, _, _ = self.file_handler.load_database(self.current_folder, self.files_name, self.proportion)
         self.classifier.fit(x_train, y_train)
 
-    def _validate_classifier(self):
+    def _validate_classifier(self) -> None:
         """
         This method validates the classifier with validation data and saves the validation results.
         """
@@ -380,7 +380,7 @@ class GestureRecognitionSystem:
         # Resets sample data variables to default values
         self.hand_history, _, self.wrists_history, self.sample = self.data_processor.initialize_data(self.dist, self.length)
 
-    def stop(self):
+    def stop(self) -> None:
         """
         Stops the gesture recognition system.
 
