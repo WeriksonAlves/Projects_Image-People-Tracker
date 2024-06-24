@@ -1,10 +1,10 @@
 from typing import Tuple, Union
 import numpy as np
 from ..ros.ServoControl import CommunicationEspCam
-
+import rospy
 
 class ServoPositionSystem:
-    def __init__(self, num_servos: int = 0, com_esp_cam: CommunicationEspCam = None):
+    def __init__(self, num_servos: int = 0, pub_hor_rot: rospy.Publisher = None, pub_ver_rot: rospy.Publisher = None, dir_rot: int = 1):
         """
         Initializes a ServoPositionSystem object.
 
@@ -13,8 +13,9 @@ class ServoPositionSystem:
             com_esp_cam (CommunicationEspCam): An instance of CommunicationEspCam class for communication with ESP-CAM. Defaults to None.
         """
         self.num_servos = num_servos
-        self.com_esp_cam = com_esp_cam
         self.enabled = self.num_servos != 0
+        if self.enabled:
+            self.com_esp_cam = CommunicationEspCam(pub_hor_rot, pub_ver_rot, dir_rot)
 
     def check_person_centered(self, captured_frame: np.ndarray, bounding_box: Tuple[int, int, int, int]) -> None:
         """
@@ -41,7 +42,7 @@ class ServoPositionSystem:
         # Calculate the distance horizontal to the center and move the servo accordingly
         distance_to_center_h = box_x - frame_center[0]
         horizontal_direction = '+1' if distance_to_center_h < 0 else '-1'
-        self.com_esp_cam.perform_action(horizontal_direction, distance_to_center_h, True)
+        self.com_esp_cam.perform_action(horizontal_direction, distance_to_center_h)
 
         # Calculate the distance vertical to the center and move the servo accordingly
         if self.num_servos > 1:

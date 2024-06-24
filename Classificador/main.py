@@ -22,21 +22,6 @@ import os
 import rospy
 from std_msgs.msg import Int32
 
-# Initialize the Servo Position System
-num_servos = 1 # Number of servos in the system
-dir_rot = 1 #direction of rotation
-
-rospy.init_node('RecognitionSystem', anonymous=True)
-pub_hor_rot = rospy.Publisher('/SPS/hor_rot', Int32, queue_size=10)
-pub_ver_rot = rospy.Publisher('/SPS/ver_rot', Int32, queue_size=10)
-
-com_esp_cam = CommunicationEspCam(pub_hor_rot, pub_ver_rot, dir_rot)
-
-SPS = ServoPositionSystem(num_servos, com_esp_cam)
-
-
-
-
 # Initialize the Gesture Recognition System
 database = {'F': [], 'I': [], 'L': [], 'P': [], 'T': []}
 file_name_build = f"Datasets/DataBase_(5-10)_16.json"
@@ -64,9 +49,23 @@ real_time_mode = ModeFactory.create_mode('real_time', files_name=files_name, dat
 
 mode = real_time_mode
 
+# Initialize the Servo Position System
+num_servos = 1 # Number of servos in the system
+if num_servos != 0:
+    dir_rot = 1 #direction of rotation
+    rospy.init_node('RecognitionSystem', anonymous=True)
+    pub_hor_rot = rospy.Publisher('/EspSystem/hor_rot', Int32, queue_size=10)
+    pub_ver_rot = rospy.Publisher('/EspSystem/ver_rot', Int32, queue_size=10)
+else:
+    pub_hor_rot = None
+    pub_ver_rot = None
+    dir_rot = 0
+    
+SPS = ServoPositionSystem(num_servos, pub_hor_rot, pub_ver_rot, dir_rot)
+
 grs = GestureRecognitionSystem(
-        config=InitializeConfig('http://192.168.174.199:81/stream'),
-        #config=InitializeConfig(4),
+        #config=InitializeConfig('http://192.168.174.199:81/stream'),
+        config=InitializeConfig(4,10),
         operation=mode,
         file_handler=FileHandler(),
         current_folder=os.path.dirname(__file__),
@@ -102,5 +101,8 @@ grs = GestureRecognitionSystem(
         sps=SPS
         )
 
-grs.run()
+try:
+    grs.run()
+finally:
+    grs.stop()
 

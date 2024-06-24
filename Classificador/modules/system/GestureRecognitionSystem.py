@@ -16,7 +16,7 @@ class GestureRecognitionSystem:
     def __init__(self, config: InitializeConfig, operation: Union[ModeDataset, ModeValidate, ModeRealTime], 
                 file_handler: FileHandler, current_folder: str, data_processor: DataProcessor, 
                 time_functions: TimeFunctions, gesture_analyzer: GestureAnalyzer, tracking_processor: InterfaceTrack, 
-                feature: InterfaceFeature, classifier: InterfaceClassifier = None, sps: ServoPositionSystem = None):
+                feature: InterfaceFeature, classifier: InterfaceClassifier = None, sps: ServoPositionSystem = None) -> None:
         
         self._initialize_camera(config)
         self._initialize_operation(operation)
@@ -33,13 +33,7 @@ class GestureRecognitionSystem:
         
         self._initialize_simulation_variables()
         self._initialize_storage_variables()
-
-        # For threading
-        self.frame_lock = threading.Lock()
-        self.frame_captured = None
-        self.image_thread = threading.Thread(target=self._read_image_thread)
-        self.image_thread.daemon = True  # Allows the thread to exit when the main program exits
-        self.image_thread.start()
+        self._initialize_threads()
 
     def _initialize_camera(self, config: InitializeConfig) -> None:
         """
@@ -90,6 +84,7 @@ class GestureRecognitionSystem:
         self.y_val = None
         self.frame_captured = None
         self.center_person = False
+        self.loop = False
         self.y_predict = []
         self.time_classifier = []
 
@@ -100,7 +95,16 @@ class GestureRecognitionSystem:
         """
         self.hand_history, _, self.wrists_history, self.sample = self.data_processor.initialize_data(self.dist, self.length)
 
-    def run(self):
+    def _initialize_threads(self) -> None:
+        # For threading
+        self.frame_lock = threading.Lock()
+        
+        # Thread for reading images
+        self.image_thread = threading.Thread(target=self._read_image_thread)
+        self.image_thread.daemon = True
+        self.image_thread.start()
+
+    def run(self) -> None:
         """
         Run the gesture recognition system based on the specified mode.
 
@@ -139,28 +143,26 @@ class GestureRecognitionSystem:
         t_frame = self.time_functions.tic()
         while self.loop:
             if self.time_functions.toc(t_frame) > (1 / self.fps):
+                print(f"FPS: {1 / self.time_functions.toc(t_frame):.3f} and Time per frame: {self.time_functions.toc(t_frame):.3f}")
                 t_frame = self.time_functions.tic()
                 
-                if cv2.waitKey(10) & 0xFF == ord("q"):
-                    break
+                if cv2.waitKey(1) & 0xFF == ord("q"):
+                    self.stop()
                 
                 if self.mode == "B":
                     if self.num_gest == self.max_num_gest:
-                        break
+                        self.stop()
                 
                 self._process_stage()
 
-        self.cap.release()
-        cv2.destroyAllWindows()
-
-    def _initialize_database(self):
+    def _initialize_database(self) -> None:
         """
         This method initializes the target names and ground truth labels (y_val) by calling the
         initialize_database method of the file_handler object.
         """
         self.target_names, self.y_val = self.file_handler.initialize_database(self.database)
 
-    def _load_and_fit_classifier(self):
+    def _load_and_fit_classifier(self) -> None:
         """
         This method loads the training data, fits the classifier with the training data, and performs
         model training.
@@ -168,7 +170,7 @@ class GestureRecognitionSystem:
         x_train, y_train, _, _ = self.file_handler.load_database(self.current_folder, self.files_name, self.proportion)
         self.classifier.fit(x_train, y_train)
 
-    def _validate_classifier(self):
+    def _validate_classifier(self) -> None:
         """
         This method validates the classifier with validation data and saves the validation results.
         """
@@ -303,7 +305,7 @@ class GestureRecognitionSystem:
             # trigger starts and the gesture begins.
             _, self.hand_history, self.dist_virtual_point = self.gesture_analyzer.check_trigger_enabled(self.hand_history, self.sample['par_trigger_length'], self.sample['par_trigger_dist'])
             if self.dist_virtual_point < self.sample['par_trigger_dist']:
-                self.stage = 0
+                self.stage = 1
                 self.dist_virtual_point = 1
                 self.time_gesture = self.time_functions.tic()
                 self.time_action = self.time_functions.tic()
@@ -337,7 +339,7 @@ class GestureRecognitionSystem:
         # Reduces to a 6x6 matrix 
         self.sample['data_reduce_dim'] = np.dot(self.wrists_history.T, self.wrists_history)
 
-    def _update_database(self) -> None:
+    def _update_database(self) -> bool:
         """
         This function updates a database with sample data and saves it in JSON format.
         
@@ -378,4 +380,11 @@ class GestureRecognitionSystem:
         # Resets sample data variables to default values
         self.hand_history, _, self.wrists_history, self.sample = self.data_processor.initialize_data(self.dist, self.length)
 
-    
+    def stop(self) -> None:
+        """
+        Stops the gesture recognition system.
+
+        """
+        self.loop = False
+        self.cap.release()
+        cv2.destroyAllWindows()
