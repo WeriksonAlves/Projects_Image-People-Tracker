@@ -10,6 +10,7 @@
 
 void configInitCamera(){
   camera_config_t config;
+  config.grab_mode = CAMERA_GRAB_LATEST;
   config.ledc_channel = LEDC_CHANNEL_0;
   config.ledc_timer = LEDC_TIMER_0;
   config.pin_d0 = Y2_GPIO_NUM;
@@ -29,7 +30,7 @@ void configInitCamera(){
   config.pin_pwdn = PWDN_GPIO_NUM;
   config.pin_reset = RESET_GPIO_NUM;
   
-  config.xclk_freq_hz = 20000000;
+  config.xclk_freq_hz = 40000000;
   config.pixel_format = PIXFORMAT_JPEG;  // for streaming  //YUV422,GRAYSCALE,RGB565,JPEG
 
   // Select lower framesize if the camera doesn't support PSRAM
