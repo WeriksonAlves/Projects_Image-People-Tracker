@@ -1,68 +1,67 @@
-# Controle Servo-Visual Onboard para Reconhecimento de Ações
+# Onboard Servo-Visual Control for Action Recognition
 
-Este repositório contém o projeto desenvolvido por Wérikson Frederiko de Oliveira Alves na disciplina ELT791 - Tópicos Especiais - Robótica e suas Utilidades na Universidade Federal de Viçosa. O projeto foca no controle servo-visual acoplado a um drone para o reconhecimento de ações humanas.
+This repository contains the project developed by Wérikson Alves in the course ELT791 - Special Topics - Robotics and its Utilities at the Federal University of Viçosa. The project focuses on servo-visual control coupled to a drone for recognizing human actions.
 
-## Sumário
+## Summary
 
-- [Introdução](#introdução)
-- [Objetivos](#objetivos)
-- [Metodologia](#metodologia)
-  - [Suporte da Câmera](#suporte-da-câmera)
-  - [Sistema de Reconhecimento de Gestos](#sistema-de-reconhecimento-de-gestos)
-  - [Configuração da ESP32CAM](#configuração-da-esp32cam)
-  - [Sistema de Reconhecimento com Orientação da Câmera](#sistema-de-reconhecimento-com-orientação-da-câmera)
-- [Resultados Alcançados](#resultados-alcançados)
-- [Considerações Finais](#considerações-finais)
-- [Contato](#contato)
+- [Introduction](#introduction)
+- [Objectives](#objectives)
+- [Methodology](#Methodology)
+  - [Camera Support](#camera-support)
+  - [Gesture Recognition System](#gesture-recognition-system)
+  - [ESP32CAM Configuration](#esp32cam-configuration)
+  - [Recognition System with Camera Orientation](#recognition-system-with-camera-orientation)
+- [Results Achieved](#results-achieved)
+- [Final Considerations](#final-considerations)
+- [Contact](#contact)
 
-## Introdução
+## Introduction
+In this project, we tackle the challenges of human-robot interaction, especially in the context of gesture control using drones. The main goal is to keep the operator always in the drone's field of view without restricting the degrees of freedom, using an action recognition system and a servo-visual control for the camera.
 
-Neste projeto, enfrentamos os desafios da interação humano-robô, especialmente no contexto de controle por gestos usando drones. O objetivo principal é manter o operador sempre no campo de visão do drone sem restringir os graus de liberdade, utilizando um sistema de reconhecimento de ações e um controle servo-visual para a câmera.
+## Objectives
 
-## Objetivos
+- Keep the operator always in the drone's field of vision.
+- Create an external module to attach the camera during missions.
+- *Update the gesture recognition system to capture images from alternative sources.* (See other repository: [Gesture_Recognition_System](https://github.com/WeriksonAlves/Papers_CBA2024_Gesture_Recognition_System))
+- Implement a servo-visual control system for the camera.
 
-- **Manter o operador sempre no campo de visão do drone.**
-- **Criar um módulo externo para fixar a câmera durante missões.**
-- **Atualizar o sistema de reconhecimento de gestos para captura de imagens de fontes alternativas.**
-- **Implementar sistema de controle servo-visual para a câmera.**
+## Methodology
 
-## Metodologia
+### Camera support
 
-### Suporte da Câmera
+Implementation of a support for fixing the camera during flight missions.
 
-Implementação de um suporte para fixação da câmera durante as missões de voo.
+### Gesture Recognition System
 
-### Sistema de Reconhecimento de Gestos
+The system uses the YOLOv8 model for object detection and operator tracking, MediaPipe Hands for hand tracking, and BlazePose for body tracking. Gestures are classified using a kNN classifier.
 
-O sistema utiliza o modelo YOLOv8 para detecção de objetos e rastreamento do operador, MediaPipe Hands para rastreamento da mão, e BlazePose para rastreamento do corpo. A classificação de gestos é feita utilizando um classificador kNN.
+### ESP32CAM configuration
 
-### Configuração da ESP32CAM
+Configuration of the ESP32CAM to transmit images via streaming over the Wi-Fi network. Implementation of OTA configuration for remote code update and servo motor control using ROS.
 
-Configuração da ESP32CAM para transmissão de imagens via streaming através da rede Wi-Fi. Implementação de configuração OTA para atualização remota do código e controle do servo motor usando ROS.
+### Recognition System with Camera Orientation
 
-### Sistema de Reconhecimento com Orientação da Câmera
+Update of the recognition system to include new classes that handle ROS communication, servo initialization, and reading the transmitted images. Implementation of a proportional control routine to keep the operator in the center of the camera's field of view.
 
-Atualização do sistema de reconhecimento para incluir novas classes que lidam com a comunicação do ROS, inicialização do servo, e leitura das imagens transmitidas. Implementação de uma rotina de controle proporcional para manter o operador no centro do campo de visão da câmera.
+## Results Achieved
 
-## Resultados Alcançados
+- **Image Acquisition:** Identification of limitations such as instability, slowness and distance from the access point.
+- **ESP32CAM:** Evaluation of hardware limitations, especially in relation to transmission quality and frequency.
+- **Support Module:** Effectiveness and challenges observed during the experiments.
+- **Servo Motor Control:** Satisfactory performance with areas identified for future improvement.
 
-- **Aquisição de Imagem:** Identificação de limitações como instabilidade, lentidão e distância do ponto de acesso.
-- **ESP32CAM:** Avaliação das limitações de hardware, especialmente em relação à qualidade e frequência de transmissão.
-- **Módulo de Suporte:** Eficácia e desafios observados durante os experimentos.
-- **Controle do Servo Motor:** Desempenho satisfatório com áreas identificadas para melhorias futuras.
+## Final Considerations
 
-## Considerações Finais
+The system developed is functional as a prototype, but requires improvement in areas such as image acquisition and ESP32CAM hardware limitations. The support and control of the servo motor showed good performance, indicating potential for future improvements.
 
-O sistema desenvolvido é funcional como protótipo, mas requer aprimoramentos em áreas como aquisição de imagens e limitações de hardware do ESP32CAM. O suporte e controle do servo motor mostraram um bom desempenho, indicando potencial para futuras melhorias.
-
-## Contato
+## Contact
 
 Wérikson F. de O. Alves  
-Universidade Federal de Viçosa  
-Núcleo de Especialização em Robótica (NERo)  
+Federal University of Viçosa 
+Robotics Specialization Nucleus (NERo)  
 Email: werikson.alves@ufv.br  
 LinkedIn: [werikson-alves](https://www.linkedin.com/in/werikson-alves)  
-Twitter: [@roboticaUFV](https://twitter.com/roboticaUFV)
+YouTube: [Wérikson Alves](https://www.youtube.com/@weriksonalves5814)
 
 ---
 
