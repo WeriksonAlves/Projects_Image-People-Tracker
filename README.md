@@ -57,7 +57,7 @@ The system developed is functional as a prototype, but requires improvement in a
 ## Contact
 
 Wérikson F. de O. Alves  
-Federal University of Viçosa 
+Federal University of Viçosa  
 Robotics Specialization Nucleus (NERo)  
 Email: werikson.alves@ufv.br  
 LinkedIn: [werikson-alves](https://www.linkedin.com/in/werikson-alves)  
